@@ -1,4 +1,8 @@
-ISOLATION MATRIX (Super tree) Decoupled from provallo's meta-learning engine. 
+
+**ISOLATION MATRIX (Super tree) Decoupled from provallo's meta-learning engine. 
+This package contains a wrapper for python and a small test script. 
+
+
 
 To use:
 1. Create a build directory (e.g. mkdir build;cd build; cmake ..) 
@@ -64,9 +68,12 @@ Ran 0 tests in 0.000s
 OK
 ```
 
-Similarly, this function can be added to evaluate python data output from cpp code : 
 
 
+
+
+A few example of how to use the isolation matrix (super tree) : 
+1) comparison to isolation forests on anomaly datasets :
 
 ``` 
 
