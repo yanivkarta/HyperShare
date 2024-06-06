@@ -32,6 +32,11 @@ set(PYTHON_NUMPY_INCLUDE_PATH /usr/lib/python${PYTHON_VERSION}/dist-packages/num
  # Find Python libraries
 find_package(PythonLibs REQUIRED)
 
+#add numpy include path and library path and enable compilation flags for numpy support:
+add_definitions(-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION) 
+
+
+
 #set the include directories :
 include_directories(${PYTHON_INCLUDE_PATH} ${PYTHON_NUMPY_INCLUDE_PATH} ${PYTHON_PATH} ${PYTHON_LIB_PATH} ${PYTHON_NUMPY_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../include) 
 

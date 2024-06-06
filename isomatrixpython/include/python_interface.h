@@ -302,10 +302,38 @@ extern PyTypeObject FastMatrixForestType ;
     {
         PyObject* py_data = nullptr;
         PyObject* py_labels = nullptr;
-        if(!PyArg_ParseTuple(args,"OO",&py_data,&py_labels))
+        //check the args type and extract (list,tuple,dict,ndarray)
+        if(args!=nullptr)
         {
-            return nullptr;
+            if(PyTuple_Check(args))
+            {
+                if(PyTuple_Size(args)==2)
+                {
+                    py_data = PyTuple_GetItem(args,0);
+                    py_labels = PyTuple_GetItem(args,1);
+                }
+            }
+            else if(PyList_Check(args))
+            {
+                if(PyList_Size(args)==2)
+                {
+                    py_data = PyList_GetItem(args,0);
+                    py_labels = PyList_GetItem(args,1);
+                }
+            }
+            else if(PyDict_Check(args))
+            {
+                py_data = PyDict_GetItemString(args,"data");
+                py_labels = PyDict_GetItemString(args,"labels");
+            }   
+              
         }
+        if(py_data==nullptr)
+        {
+            PyErr_SetString(PyExc_RuntimeError,"The data is not provided.");
+            return nullptr;
+        }   
+
         return self->fit(py_data,py_labels);
     }   
     static PyObject* predict(FastMatrixForestF32U32* self, PyObject* args)
