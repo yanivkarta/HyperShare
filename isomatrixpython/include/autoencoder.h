@@ -692,9 +692,7 @@ namespace provallo
         }
         void train(T *input, T *output, size_t size);
         void train (matrix<T>& input,  class_dist& output);
-
-
-
+ 
         //predict
         void predict(T *input, size_t size, T *output, size_t outputSize)
         {
