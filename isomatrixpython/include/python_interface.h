@@ -122,6 +122,8 @@ extern PyTypeObject FastMatrixForestType ;
     PyObject* fit(PyObject* py_data, PyObject* py_labels)
     {
         //import numpy
+        PyObject* ret = nullptr;
+        
         try{
         WrappedNumPy<real_t>::import_array();
         //get the data and labels from numpy arrays
@@ -177,13 +179,16 @@ extern PyTypeObject FastMatrixForestType ;
         {
             PyList_SetItem(py_prediction_probs,i,PyFloat_FromDouble(prediction_probs[i]));
         }
-
-        return py_prediction_probs;
+        //set return value:
+        ret = py_prediction_probs;
+        
         }catch(std::exception& e)
         {
             PyErr_SetString(PyExc_RuntimeError,e.what());
             return nullptr;
         }   
+
+        return ret;
 
     }   
     //predict method with numpy arrays recieved from Python:
@@ -195,7 +200,7 @@ extern PyTypeObject FastMatrixForestType ;
         provallo::matrix<real_t> data;
         //get the data
         if(py_data!=nullptr)
-        {
+        {   
             //get the data
             //get the dimensions of the data :
             PyObject* py_shape = WrappedNumPy<real_t>::shape(py_data);

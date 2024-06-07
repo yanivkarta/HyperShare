@@ -273,7 +273,78 @@ public:
     
         return itemsize_attr;
     }   
-
+    //get the data pointer of the array
+    static PyObject* data_ptr(PyObject* obj) {
+        // Check if the object has a `__array__` attribute
+        PyObject* attr = PyObject_GetAttrString(obj, "__array__");
+        if (attr == nullptr) {
+        PyErr_SetString(PyExc_TypeError, "Object does not have __array__ attribute");
+        return nullptr;
+        }
+    
+        // Check if the attribute is callable (likely a NumPy array)
+        if (!PyCallable_Check(attr)) {
+        PyErr_SetString(PyExc_TypeError, "__array__ attribute is not callable");
+        Py_DECREF(attr);
+        return nullptr;
+        }
+    
+        // Call the `__array__` method to potentially get a NumPy array
+        PyObject* array = PyObject_CallObject(attr, nullptr);
+        Py_DECREF(attr); // Release reference to attribute
+    
+        // Check if the returned object is a valid NumPy array (optional)
+        // if ( !PyArray_Check(array) ) { ... handle non-array case ... }
+    
+        // Attempt to get the data pointer using generic methods
+        PyObject* data_attr = PyObject_GetAttrString(array, "data");
+        if (data_attr == nullptr) {
+        Py_DECREF(array); // Release reference obtained from __array__
+        return nullptr;
+        }
+    
+        // Increment reference count before returning
+        Py_INCREF(data_attr);
+        Py_DECREF(array); // Release reference obtained from __array__
+    
+        return data_attr;
+    } 
+    //get the flags of the array
+    static PyObject* flags(PyObject* obj) {
+        // Check if the object has a `__array__` attribute
+        PyObject* attr = PyObject_GetAttrString(obj, "__array__");
+        if (attr == nullptr) {
+        PyErr_SetString(PyExc_TypeError, "Object does not have __array__ attribute");
+        return nullptr;
+        }
+    
+        // Check if the attribute is callable (likely a NumPy array)
+        if (!PyCallable_Check(attr)) {
+        PyErr_SetString(PyExc_TypeError, "__array__ attribute is not callable");
+        Py_DECREF(attr);
+        return nullptr;
+        }
+    
+        // Call the `__array__` method to potentially get a NumPy array
+        PyObject* array = PyObject_CallObject(attr, nullptr);
+        Py_DECREF(attr); // Release reference to attribute
+    
+        // Check if the returned object is a valid NumPy array (optional)
+        // if ( !PyArray_Check(array) ) { ... handle non-array case ... }
+    
+        // Attempt to get the flags using generic methods
+        PyObject* flags_attr = PyObject_GetAttrString(array, "flags");
+        if (flags_attr == nullptr) {
+        Py_DECREF(array); // Release reference obtained from __array__
+        return nullptr;
+        }
+    
+        // Increment reference count before returning
+        Py_INCREF(flags_attr);
+        Py_DECREF(array); // Release reference obtained from __array__
+    
+        return flags_attr;
+    } 
 
  };
 

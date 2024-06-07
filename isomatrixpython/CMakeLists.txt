@@ -45,6 +45,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 set (src_cpp src/isolation_matrix_python.cpp)   
 
+#enable AVX options to the compiler
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx -mavx2 -mfma -mfpmath=sse -march=native -mtune=native -O3 -fPIC -fno-omit-frame-pointer -fno-strict-aliasing  -fno-stack-protector -fno-strict-overflow -fno-delete-null-pointer-checks -fno-lifetime-dse -fno-merge-all-constants")    
 
 # Link with Python libraries
 
