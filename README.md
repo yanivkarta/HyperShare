@@ -12,4 +12,13 @@ graph TD;
     
 
 ```
- 
+
+
+
+![accuracy](https://github.com/provallo-com/Hypershare/blob/main/AccuracyPerformance.png?raw=true)
+
+build:
+
+mkdir build && cd build &&  cmake ../
+make -j8 all
+
