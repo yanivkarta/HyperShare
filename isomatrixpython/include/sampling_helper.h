@@ -1,8 +1,6 @@
 #ifndef __SAMPLING_HELPER_H_
 #define __SAMPLING_HELPER_H_
 
-
-
 #include <string>
 #include <vector>
 #include <iostream>
@@ -55,6 +53,11 @@ namespace provallo
                     x[k    ] = even[k] + t;
                     x[k+N/2] = even[k] - t;
                 }
+                
+                x=x.apply(std::conj); 
+                //finalize
+
+                
             }
             static void  fft ( std::complex<T> *x , size_t N)
             {
@@ -286,12 +289,13 @@ namespace provallo
                 x = (x - x.max()).exp();
                 x = x / x.sum();
             }
-            //softmax derivative 
             static void
             softmax_derivative(matrix<T>& x)
             {
-                x = x * (1.0 - x);
+                x *= (1.0 - x) * x;
+                
             }
+
             //
 
     };
@@ -465,8 +469,8 @@ namespace provallo
                 weights = weights + velocity;
             }
     };
-        template<typename T>
-
+    
+    template<typename T>
     class sgd_nesterov_helper
     {
         public:
@@ -480,10 +484,14 @@ namespace provallo
                          real_t learning_rate,
                          real_t momentum)
             {
+                //gradient descent with momentum and Nesterov acceleration 
+
+                //calculate the momentum
+                matrix<T> v = momentum * velocity;
                 //velocity = momentum * velocity - learning_rate * gradients
-                velocity = momentum * velocity - learning_rate * gradients;
+                velocity = v - learning_rate * gradients;
                 //weights = weights + momentum * velocity - learning_rate * gradients
-                weights = weights + momentum * velocity - learning_rate * gradients;
+                weights = weights + v - learning_rate * gradients;
             }
     };
       

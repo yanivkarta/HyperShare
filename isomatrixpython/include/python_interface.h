@@ -37,6 +37,7 @@ extern PyTypeObject FastMatrixForestType ;
     PyObject* py_forest = nullptr; 
     PyObject* py_forest_dict = nullptr;
     PyObject* py_forest_list = nullptr;
+    std::vector<uint32_t> last_scores = {};
     public:
 
     //implement accessors for the forest 
@@ -79,11 +80,16 @@ extern PyTypeObject FastMatrixForestType ;
         }
         forest = new provallo::super_tree<real_t,uint32_t>(data,labels,data.rows(),data.cols()  );
 
+        std::vector<uint32_t> prediction_labels(labels.size());
+        for(size_t i=0;i<labels.size();i++)
+        {
+            prediction_labels[i] = labels[i];
+        }
 
         //fit the forest
-        forest->fit(data,labels);
+        forest->fit(data,prediction_labels);
         //return the probabilities of the labels
-        auto prediction_labels = forest->predict(data);
+        
         std::vector<real_t> prediction_probs(prediction_labels.size());
         for(size_t i=0;i<prediction_labels.size();i++)
         {
@@ -98,9 +104,26 @@ extern PyTypeObject FastMatrixForestType ;
         {
             throw std::runtime_error("The forest is not fitted yet.");
         }
+
         //predict the labels
-        return forest->predict(data);
+        //store the results in the last_scores variable 
+         last_scores = forest->predict(data);
+         //debug print
+         PySys_WriteStdout("[+] Predicted last scores %lu\n",last_scores.size());
+
+        //return the labels
+        return last_scores;
     }   
+    std::vector<real_t> get_scores()
+    {
+        std::vector<real_t> scores(last_scores.size());
+        for(size_t i=0;i<last_scores.size();i++)
+        {
+            scores[i] = 1.0-(last_scores[i]-i);
+        }
+        return scores;
+        
+    }
     //destructor
     ~FastMatrixForestF32U32()
     {
@@ -235,6 +258,8 @@ extern PyTypeObject FastMatrixForestType ;
         for(size_t i=0;i<prediction_labels.size();i++)
         {
             PyList_SetItem(py_prediction_labels,i,PyLong_FromLong(prediction_labels[i]));
+            //Debug output that the item was added : 
+            PySys_WriteStdout("[+]Added item %zu\n",i);
         }
         return py_prediction_labels;
     }   

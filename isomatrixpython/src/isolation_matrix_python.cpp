@@ -26,32 +26,44 @@ typedef FastMatrixForestF32U32 FastMatrixForest;
         //get the data and the labels:
         PyObject* py_data = nullptr;
         PyObject* py_labels = nullptr; 
+        if (!args)
+        {
+            return Py_None;
+        }
         //parse the arguments,check if the arguments are a tuple,ndarray or a list: 
-        if(args->ob_type->tp_name=="tuple")
+        std::string name = std::string(args->ob_type->tp_name);
+        if (name.compare("tuple") == 0)
         {
             py_data = PyTuple_GetItem(args,0);
             py_labels = PyTuple_GetItem(args,1);
+
         }
-        else if(args->ob_type->tp_name=="list")
+        else if (name.compare("list") == 0)
         {
+            
             py_data = PyList_GetItem(args,0);
             py_labels = PyList_GetItem(args,1);
+
         }
-        else if(args->ob_type->tp_name=="ndarray")
+        else if (name.compare("ndarray") == 0)
         {
+            
             py_data = args;
             py_labels = PyTuple_GetItem(args,1);
-        }
-        else
-        {
-            return nullptr;
-        }   
 
+        }
+
+        //check if the arguments are a tuple,ndarray or a list:
+        if(py_data == nullptr || py_labels == nullptr)
+        {
+            throw std::invalid_argument("Invalid arguments, please provide a tuple,ndarray or a list as input"); 
+        }
         //create the object:
         FastMatrixForestF32U32* self = new FastMatrixForestF32U32();
 
         //fit the object:
-        self->fit(py_data,py_labels); 
+        if(self!=nullptr)
+            self->fit(py_data,py_labels); 
         return (PyObject*)self;
         
     }   
@@ -111,24 +123,25 @@ typedef FastMatrixForestF32U32 FastMatrixForest;
         {
             return nullptr;
         }
-        else if(args->ob_type->tp_name=="tuple")
+        std::string name = std::string(args->ob_type->tp_name);
+        if(name.compare("tuple")==0)
         {
             py_data = PyTuple_GetItem(args,0);
         }
-        else if(args->ob_type->tp_name=="list")
+        else if(name.compare("list")==0)
         {
             py_data = PyList_GetItem(args,0);
         }
-        else if(args->ob_type->tp_name=="ndarray")
+        else if(name.compare("ndarray")==0)
         {
             py_data = args;
         }
         else
         {
             return nullptr;
-        }   
-        //predict the labels of the data:
-
+        }
+        //check if args are a tuple,ndarray or a list and extract the data:
+        
         return self->predict(py_data);
     }
     //get the properties of the super tree:
@@ -231,6 +244,7 @@ typedef FastMatrixForestF32U32 FastMatrixForest;
     extern "C" PyObject* FastMatrixForest_predict(FastMatrixForest* self, PyObject* args)
     {
         PyObject* py_data = nullptr;
+
         //extract the arguments, if it's a single argument:
         if(args->ob_type == nullptr)
         {
@@ -244,15 +258,15 @@ typedef FastMatrixForestF32U32 FastMatrixForest;
         {
             return nullptr;
         }
-        else if(args->ob_type->tp_name=="tuple")
+        else if(strncmp(args->ob_type->tp_name,"tuple",5)==0)
         {
             py_data = PyTuple_GetItem(args,0);
         }
-        else if(args->ob_type->tp_name=="list")
+        else if(strncmp(args->ob_type->tp_name,"list",4)==0)
         {
             py_data = PyList_GetItem(args,0);
         }
-        else if(args->ob_type->tp_name=="ndarray")
+        else if(strncmp(args->ob_type->tp_name,"ndarray",7)==0)
         {
             py_data = args;
         }
@@ -315,7 +329,7 @@ extern "C" PyObject* FastMatrixForest_create_python_fast_matrix_forest(PyObject*
     }   
     //validate the type of the argument:
 
-    if(args->ob_type == nullptr)
+    if(args->ob_type == nullptr || args->ob_type->tp_name == 0x0) 
     {
          return nullptr;
     }
@@ -324,31 +338,35 @@ extern "C" PyObject* FastMatrixForest_create_python_fast_matrix_forest(PyObject*
          return nullptr;
     }
    
-    if(args->ob_type->tp_name=="tuple")
+    std::string name = std::string(args->ob_type->tp_name);
+
+    if(name.compare("tuple")==0)
     {
         py_data = PyTuple_GetItem(args,0);
         py_labels = PyTuple_GetItem(args,1);
 
     }
-    else if(args->ob_type->tp_name=="list")
+    else if(name.compare("list")==0)
     {
         py_data = PyList_GetItem(args,0);
         py_labels = PyList_GetItem(args,1);
     }
-    else if(args->ob_type->tp_name=="ndarray")
+    else if(name.compare("ndarray")==0)
     {
         py_data = args;
         py_labels = PyTuple_GetItem(args,1);
     }
 
-    //create the object:
-    //self is type of PyObject* so we need to cast it to FastMatrixForestF32U32* 
-    //print the size of the labels:
-    //python stdout print
- 
+    
     FastMatrixForestF32U32* self_ = new FastMatrixForestF32U32();
     self_->ob_type = &FastMatrixForestType;
     //fit the object:
+
+    //check if it's a tuple,ndarray or a list and extract the data and the labels: 
+    if(py_data == nullptr || py_labels == nullptr)
+    {
+        return nullptr;
+    }
 
     self_->fit(py_data,py_labels);
     
@@ -371,8 +389,86 @@ extern "C" PyObject* FastMatrixForest_delete_python_fast_matrix_forest(PyObject*
 
 }   
 
+//FastMatrixForest_get_scores:
+extern "C" PyObject* FastMatrixForest_get_scores(FastMatrixForest* self, PyObject* args)
+{
+    //make sure that the arguments are valid:
+    if(args == nullptr)
+    {
+      
+      PyErr_SetString(PyExc_RuntimeError,"Warning: no arguments passed to get_scores"); 
+        
+    }
+
+    //check for null pointer:
+    if(self == nullptr)
+    {
+        return nullptr;
+    }
+
+    //get the scores:
+    auto scores = self->get_scores(); 
+
+    //make sure that the scores are valid:
+    if(scores.size() == 0)
+    {
+        PyErr_SetString(PyExc_RuntimeError,"Warning: no scores returned from the get_scores");
+    }
+    else if(scores.size() == 1)
+    {
+        PyErr_SetString(PyExc_RuntimeError,"Warning: only one score returned from the get_scores");
+    }
+    
+    if (args != nullptr)
+    {
+        //Py_DECREF(args);
+
+        //assign the scores passed as argument:
+        if(PyTuple_Check(args))
+        {
+            //get the number of arguments passed:   
+            Py_ssize_t size = PyTuple_Size(args);
+
+            if(size != scores.size())
+            {
+                PyErr_SetString(PyExc_RuntimeError,"Warning: the number of scores passed in the get_scores does not match the number of scores returned");
+            }
+
+            for(size_t i=0;i<scores.size();i++)
+            {
+                PyTuple_SetItem(args,i,Py_BuildValue("f",scores[i]));
+            }
+        }
+        else if(PyList_Check(args))
+        {
+            //get the number of arguments passed:   
+            Py_ssize_t size = PyList_Size(args);    
+
+            if(size != scores.size())
+            {
+                PyErr_SetString(PyExc_RuntimeError,"Warning: the number of scores passed in the get_scores does not match the number of scores returned");
+            }
+
+            for(size_t i=0;i<scores.size();i++)
+            {
+                PyList_SetItem(args,i,Py_BuildValue("f",scores[i]));
+            }
+        }
+        else
+        {
+            PyErr_SetString(PyExc_RuntimeError,"Warning: the argument passed in the get_scores is not a tuple or a list");
+        }
 
 
+    }
+
+    //return npy array with the scores for each data point:
+    
+    return Py_BuildValue("n",scores.data(), static_cast<Py_ssize_t>(scores.size()));
+
+} 
+
+    
         
     //end of the Python interface for the FastMatrixForestF32U32 class
 

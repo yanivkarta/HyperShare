@@ -62,13 +62,16 @@ class FastMatrixForest(object):
         self.results = np.zeros(data.shape[0], dtype=np.float64)
         self.n_samples = data.shape[0] 
         self.n_features = data.shape[1]
- 
+        lib.FastMatrixForest_fit( self.forest,  data.ctypes.data_as(ctypes.c_void_p), self.results.ctypes.data_as(ctypes.c_void_p), data.shape[0]) 
+
         return self
     
     def predict(self, data):
         #predict the anomaly scores for the data
         scores = np.zeros(data.shape[0], dtype=np.float64)
-        lib.FastMatrixForest_predict( data.ctypes.data_as(ctypes.c_void_p), scores.ctypes.data_as(ctypes.c_void_p), data.shape[0])
+        scores = lib.FastMatrixForest_predict( self.forest,  data.ctypes.data_as(ctypes.c_void_p), scores.ctypes.data_as(ctypes.c_void_p), data.shape[0]) 
+
+        
         return scores
     
     def delete(self):
@@ -89,7 +92,7 @@ if __name__ == '__main__':
     data = np.random.rand(1000, 10)
     forest = create_python_fast_matrix_forest(data,  np.random.randint(0, 2, 1000), 100, 100, 100, 1) 
     forest.fit(data)
-    scores = forest.predict(data)
+    scores = forest.predict(data) 
     print(scores)
     del forest
     print("done")   
