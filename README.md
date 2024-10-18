@@ -17,8 +17,14 @@ graph TD;
 
 ![accuracy](https://github.com/provallo-com/Hypershare/blob/main/AccuracyPerformance.png?raw=true)
 
-build:
-
+[+] build:
+```
 mkdir build && cd build &&  cmake ../
 make -j8 all
+cp ../test.py .
+python3 ./test.py
+```
+
+Successful execution will display the graph above once it's done 
+
 
