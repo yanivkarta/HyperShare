@@ -19,6 +19,7 @@ graph TD;
 
 [+] build:
 ```
+cd isomatrixpython
 mkdir build && cd build &&  cmake ../
 make -j8 all
 cp ../test.py .
