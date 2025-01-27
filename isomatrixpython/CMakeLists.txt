@@ -35,6 +35,15 @@ find_package(PythonLibs REQUIRED)
 #add numpy include path and library path and enable compilation flags for numpy support:
 add_definitions(-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION) 
 
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(googletest)
+
 
 
 #set the include directories :
@@ -55,7 +64,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx -mavx2 -mfma -mfpmath=sse -march=n
 add_library(isolation_mat_python SHARED ${src_cpp}) 
 
 #add stdc++ static library:
-target_link_libraries(isolation_mat_python stdc++ ) 
+target_link_libraries(isolation_mat_python stdc++ )
+  
 
 #install the library, make debian package and python module : 
 install(TARGETS isolation_mat_python DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../lib) 

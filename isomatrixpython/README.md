@@ -1,10 +1,15 @@
 
 **ISOLATION MATRIX (Super tree) Decoupled from provallo's meta-learning engine. 
-This package contains a wrapper for python and a small test script. 
+This package contains a wrapper for python and a small test script. **
+
+Important note and disclaimer: 
+This code was decoupled from meta-learning framework, where all the possible hyper parameters and constraints were known for each data-set. When the hyper plane's hyper parameters are manually configured or defaulted, it may cause a few issues , bugs and unexpected functionality. 
+Python wrapping was initially done only for benchmarking purposes. 
 
 
 
-To use:
+[+] build:
+
 1. Create a build directory (e.g. mkdir build;cd build; cmake ..) 
 2. build the .so (e.g. make -j8;make install)
 3. copy the test.py to the build directory and run python3 ./test.py

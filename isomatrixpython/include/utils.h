@@ -803,7 +803,6 @@ namespace provallo
     }
     //interpolate matrix : 
     
-
     struct wolfe_linear_search
     {
         template <typename Function, typename Gradient, typename Array>

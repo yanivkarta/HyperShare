@@ -223,6 +223,4 @@ if __name__ == "__main__":
     parser.add_argument('file', type=str, help='file to plot')
     args = parser.parse_args()
     plot_file(args.file)
-
-
-    
+    # ===================

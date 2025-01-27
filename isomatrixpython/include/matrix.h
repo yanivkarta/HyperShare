@@ -2495,20 +2495,34 @@ namespace provallo
       return ret;
     }
 
+
+    //On the space of compactly supported functions f:V→R  
+    //the Laplacian is Hermitian with respect to this inner product.
+    // Indeed,//⟨f,Δg⟩=∑v→w(f(v)g(w)−f(v)g(v))=∑v→w(f(w)g(v)−f(v)g(v))=⟨Δf,g⟩.
+    // for all f,g∈C(V) in the manifold of compactly supported functions 
+
+     
     T laplacian(size_t i, size_t j)const
     {
+      assert(data_ != nullptr&& i < size1_ && j < size2_);
+
       T ret = 0;
       if (i == j)
       {
-        ret = 0;
-        for (size_t k = 0; k < size1(); ++k)
-          ret += element(i, k);
-        ret = -ret;
+        for (size_t k = 0; k < size1_; ++k)
+              ret += element(k, i) * element(k, j);
+        return ret;
       }
-      else
+
+      for (size_t k = 0; k < size1_; ++k)
       {
-        ret = element(i, j);
+        ret += element(k, i) * element(k, j);
+        if (k != i)
+          ret -= element(k, i) * element(k, j);
+        if (k != j)
+          ret -= element(k, i) * element(k, j);
       }
+      //done
       return ret;   
     }
 
@@ -2572,7 +2586,7 @@ namespace provallo
       return element(i, j) == -element(j, i);
     }
 
-    matrix<T> sqrt()
+    matrix<T> sqrt()const
     {
 
       matrix<T> sqrt_prod(size2(), size1());
@@ -2582,6 +2596,16 @@ namespace provallo
 
       return sqrt_prod;
     }
+    
+    matrix <std::complex<T>> complex_sqrt()
+    {
+      matrix<std::complex<T>> sqrt_prod(size2(), size1());
+      for (typename matrix<T>::size_type i = 0; i < size1(); i++)
+        for (typename matrix<T>::size_type j = 0; j < size2(); j++)
+          sqrt_prod(i, j) = std::sqrt(element(i, j));
+      return sqrt_prod;
+    }
+    
     matrix<T>
     transpose() const
     {
@@ -2609,6 +2633,15 @@ namespace provallo
           conjugate(i, j) = std::conj(element(i, j)).real();
       return conjugate;
     }
+    matrix<std::complex<T>> complex_conjugate() const
+    {
+      matrix<std::complex<T>> conjugate(size1(), size2());
+      for (typename matrix<T>::size_type i = 0; i < size1(); ++i)
+        for (typename matrix<T>::size_type j = 0; j < size2(); ++j)
+          conjugate(i, j) = std::conj(element(i, j));
+      return conjugate;
+    }
+
     //adjoint
     matrix<T> adjoint() const
     {
@@ -2804,7 +2837,32 @@ namespace provallo
       }
       return in;
     } 
+    
+    //complex support for division/square root
+    /*
+    template <typename T>
+    matrix<std::complex<T>> operator/(const T &rhs) const
+    {
+      matrix<std::complex<T> > ret(size1_, size2_);
 
+      for (size_t i = 0; i < size1_; i++)
+        for (size_t j = 0; j < size2_; j++)
+          ret(i, j) = element(i, j) / rhs;
+      
+      return ret;
+    }
+    template <typename T>
+    matrix<std::complex<T>> operator/(const matrix<T> &rhs) const
+    {
+      matrix<std::complex<T> > ret(size1_, size2_);     
+
+      for (size_t i = 0; i < size1_; i++)
+        for (size_t j = 0; j < size2_; j++)
+          ret(i, j) = element(i, j) / rhs(i, j);
+      
+      return ret;
+    } 
+    */
     //  
     // operators for matrix-matrix operations
     //
@@ -4222,76 +4280,75 @@ namespace provallo
   // v : eigenvectors
   // nrot : number of rotations
   template <typename T>
-  void jacobi(const matrix<T> &a1, std::vector<T> &d, matrix<T> &v, size_t &nrot)
+  void jacobi(const matrix<T> &mat, std::vector<T> &diagonal, provallo::matrix<T> &v, size_t &nrot)
   {
-    size_t i, j, ip, iq;
-    T thresh, theta, tau, t, sm, s, h, g, c;
-    size_t n = d.size();
-    matrix<T> a(a1);
-    std::vector<T> b(n), z(n);
-    for (ip = 0; ip < n; ++ip)
+    size_t i, j;
+    T threshold, theta, tau, t, sum, eigenvalue, z;
+    size_t n = diagonal.size();
+    matrix<T> a(mat);
+    std::vector<real_t> b(n), Z(n);
+    for (i = 0; i < n; ++i)
     {
+      for (j = 0; j < n; ++j)
+        v(i, j) = T(0.);
 
-      for (iq = 0; iq < n; ++iq)
-        v[ip][iq] = T(0.);
-
-      v[ip][ip] = 1.;
+      v(i, i) = 1.;
     }
-    for (ip = 0; ip < n; ip++)
+    for (i = 0; i < n; ++i)
     {
-      b[ip] = d[ip] = a[ip][ip];
-      z[ip] = T(0.);
+      b[i] = diagonal[i] = a(i, i);
+      Z[i] = T(0.);
     }
     nrot = 0;
-    for (i = 0; i <= 50; ++i)
+    for (i = 0; i < 50; ++i)
     {
-      sm = 0.;
-      for (ip = 0; ip < n - 1; ip++)
+      sum = 0.;
+      for (size_t ip = 0; ip < n - 1; ++ip)
       {
-        for (iq = ip + 1; iq < n; iq++)
-          sm += fabs(a(ip, iq));
+        for (size_t iq = ip + 1; iq < n; ++iq)
+          sum += std::abs(a(ip, iq));
       }
-      if (sm == 0.0)
+      if (sum == 0.0)
         return;
 
       if (i < 4)
-        thresh = .2 * sm / T(n * n);
+        threshold = .2 * sum / T(n * n);
       else
-        thresh = 0.;
-      for (ip = 0; ip < n; ip++)
+        threshold = 0.;
+      for (size_t ip = 0; ip < n; ++ip)
       {
-        for (iq = ip + 1; iq < n; iq++)
+        for (size_t iq = ip + 1; iq < n; ++iq)
         {
-          g = 100. * fabs(a(ip, iq));
-          if (i > 4 && fabs(d[ip]) + g == fabs(d[ip]) && (fabs(d[iq]) + g == fabs(d[iq])))
+          eigenvalue = 100. * std::abs(a(ip, iq));
+          if (i > 4 && std::abs(diagonal[ip]) + eigenvalue == std::abs(diagonal[ip]) && (std::abs(diagonal[iq]) + eigenvalue == std::abs(diagonal[iq])))
           {
             a(ip, iq) = 0.;
           }
-          else if (fabs(a(ip, iq) > thresh))
+          else if (std::abs(a(ip, iq)) > threshold)
           {
-            h = d[iq] - d[ip];
-            if ((fabs(h) + g) == fabs(h))
+            T h = diagonal[iq] - diagonal[ip];
+            if ((std::abs(h) + eigenvalue) == std::abs(h))
             {
-              t = (a(ip, iq) / h); // t = 1/phi
+              t = a(ip, iq) / h; // t = 1/phi
             }
             else
             {
               theta = .5 * h / a(ip, iq);
-              t = 1. / fabs(theta) / sqrt(1. + (theta * theta));
+              t = 1. / std::abs(theta) / std::sqrt(1. + (theta * theta));
 
               if (theta < 0.)
                 t = -t;
 
             } // end else
           }
-          c = 1. / sqrt(1 + (t * t));
-          s = t * c;
+          T c = 1. / std::sqrt(1 + (t * t));
+          T s = t * c;
           tau = s / (1. + c);
-          h = t * a(ip, iq);
-          z[ip] -= h;
-          z[iq] += h;
-          d[ip] -= h;
-          d[iq] += h;
+          T h = t * a(ip, iq);
+          Z[ip] -= h;
+          Z[iq] += h;
+          diagonal[ip] -= h;
+          diagonal[iq] += h;
           a(ip, iq) = 0.;
           for (j = 0; j < ip; j++)
             rot(a, s, tau, j, ip, j, iq);
@@ -4306,34 +4363,34 @@ namespace provallo
 
         } // end for iq
       }   // end for ip
-      // update d with z
-      for (ip = 0; ip < n; ip++)
+      // update diagonal with z
+      for (i = 0; i < n; ++i)
       {
-        b[ip] += z[ip];
-        d[ip] += b[ip];
-        z[ip] = 0.;
+        b[i] += Z[i];
+        diagonal[i] += b[i];
+        Z[i] = 0.;
       }
 
       // sort eigenvalues
-      for (ip = 0; ip < n - 1; ip++)
+      for (i = 0; i < n - 1; ++i)
       {
-        size_t k = ip;
-        T p = d[ip];
-        for (j = ip + 1; j < n; j++)
-          if (d[j] >= p)
+        size_t k = i;
+        T p = diagonal[i];
+        for (j = i + 1; j < n; ++j)
+          if (diagonal[j] >= p)
           {
             k = j;
-            p = d[j];
+            p = diagonal[j];
           }
-        if (k != ip)
+        if (k != i)
         {
-          d[k] = d[ip];
-          d[ip] = p;
-          for (j = 0; j < n; j++)
+          diagonal[k] = diagonal[i];
+          diagonal[i] = p;
+          for (j = 0; j < n; ++j)
           {
-            p = v[j][ip];
-            v[j][ip] = v[j][k];
-            v[j][k] = p;
+            p = v(j, i);
+            v(j, i) = v(j, k);
+            v(j, k) = p;
           }
         }
       }
@@ -4548,5 +4605,106 @@ namespace provallo
     matrix<T> x = a_transpose_a_lambda_inv * a_transpose_b; 
     return x;
   }
+
+  //N-dimensional vector of matrixes 
+  template <typename T>
+  matrix<T> operator+(const matrix<T> &a, const std::vector<matrix<T>> &b)  
+  {
+    matrix<T> ret(a.size1(), a.size2());
+    for (typename matrix<T>::size_type i = 0; i < a.size1(); i++)
+    {
+      for (typename matrix<T>::size_type j = 0; j < a.size2(); j++)
+      {
+        ret(i, j) = a(i, j) + b[i](i, j);
+      }
+    }
+    return ret;
+  } 
+  //operator- 
+  template <typename T>
+  matrix<T> operator-(const matrix<T> &a, const std::vector<matrix<T>> &b)  
+  {
+    matrix<T> ret(a.size1(), a.size2());
+    for (typename matrix<T>::size_type i = 0; i < a.size1(); i++)
+    {
+      for (typename matrix<T>::size_type j = 0; j < a.size2(); j++)
+      {
+        ret(i, j) = a(i, j) - b[i](i, j);
+      }
+    }
+    return ret;
+  }
+  //operator*
+  template <typename T>
+  matrix<T> operator*(const matrix<T> &a, const std::vector<matrix<T>> &b)  
+  {
+    matrix<T> ret(a.size1(), a.size2());
+    for (typename matrix<T>::size_type i = 0; i < a.size1(); i++)
+    {
+      for (typename matrix<T>::size_type j = 0; j < a.size2(); j++)
+      {
+        
+        ret(i, j) = a(i, j) * b[i](i, j);
+      }
+    }
+    return ret;
+  }
+  //operator/
+  template <typename T>
+  matrix<T> operator/(const matrix<T> &a, const std::vector<matrix<T>> &b)  
+  {
+    matrix<T> ret(a.size1(), a.size2());
+    for (typename matrix<T>::size_type i = 0; i < a.size1(); i++)
+    {
+      for (typename matrix<T>::size_type j = 0; j < a.size2(); j++)
+      {
+        ret(i, j) = a(i, j) / b[i](i, j);
+      }
+    }
+    return ret;
+  } 
+  
+  //operator+= 
+  template <typename T>
+  matrix<T> & operator+=(matrix<T> &a, const std::vector<matrix<T>> &b)  
+  {
+    for (typename matrix<T>::size_type i = 0; i < a.size1(); i++)
+    {
+      for (typename matrix<T>::size_type j = 0; j < a.size2(); j++)
+      {
+        a(i, j) += b[i](i, j);
+      }
+    }
+    return a;
+  } 
+  //operator-= 
+  template <typename T>
+  matrix<T> & operator-=(matrix<T> &a, const std::vector<matrix<T>> &b)  
+  {
+    for (typename matrix<T>::size_type i = 0; i < a.size1(); i++)
+    {
+      for (typename matrix<T>::size_type j = 0; j < a.size2(); j++)
+      {
+        a(i, j) -= b[i](i, j);
+      } 
+    }
+    return a;
+  }
+  
+  //operator*= 
+  template <typename T>
+  matrix<T> & operator*=(matrix<T> &a, const std::vector<matrix<T>> &b)  
+  {
+    for (typename matrix<T>::size_type i = 0; i < a.size1(); i++)
+    {
+      for (typename matrix<T>::size_type j = 0; j < a.size2(); j++)
+      {
+        a(i, j) *= b[i](i, j);
+      }
+    }
+    return a;
+  }
+
+
 } /* namespace provallo */ ;
 #endif /* DECISION_ENGINE_MATRIX_H_ */
