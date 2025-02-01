@@ -67,6 +67,12 @@ add_library(isolation_mat_python SHARED ${src_cpp})
 target_link_libraries(isolation_mat_python stdc++ )
   
 
+#add gtest library:
+target_link_libraries(isolation_mat_python gtest) 
+
+#add gtest_main library:
+target_link_libraries(isolation_mat_python gtest_main)
+
 #install the library, make debian package and python module : 
 install(TARGETS isolation_mat_python DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../lib) 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/isolation_matrix_python.py DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../lib)
