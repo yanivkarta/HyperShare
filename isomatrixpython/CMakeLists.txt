@@ -6,11 +6,18 @@ cmake_minimum_required(VERSION 3.0)
 project(isolation_mat_python)
 find_package(PythonInterp REQUIRED)
 find_package(PythonLibs REQUIRED)
+
+
 #set the python version
 set(PYTHON_VERSION 3.8)
 #get python path:
 get_filename_component(PY_PATH ${PYTHON_EXECUTABLE} DIRECTORY) 
 
+
+#set c++14
+set(CMAKE_CXX_STANDARD 14)
+#set static c++ crt 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++") 
 
 #set the python path:
 #use regex to get the path from the bin folder
@@ -70,11 +77,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx -mavx2 -mfma -mfpmath=sse -march=n
 # Link with Python libraries
 
 
-add_library(isolation_mat_python SHARED ${src_cpp}) 
+add_library(isolation_mat_python SHARED ${src_cpp} )  
 
 #add stdc++ static library,gtest, 
 
-target_link_libraries(isolation_mat_python stdc++ gtest ${PYTHON_LIB})
+target_link_libraries(isolation_mat_python  gtest ${PYTHON_LIB})
   
 
 #add gtest library:
@@ -97,7 +104,7 @@ add_link_options(-g)
 
 
 #add CMAKE_CXX_LINKER_FLAGS:
-set (CMAKE_CXX_LINKER_FLAGS "${CMAKE_CXX_LINKER_FLAGS} -lstdc++ -lgtest -l${PYTHON_LIB}") 
+set (CMAKE_CXX_LINKER_FLAGS "${CMAKE_CXX_LINKER_FLAGS} -lgtest -l${PYTHON_LIB}") 
 
 #add gtest_main library:
 add_executable(isolation_mat_python_test  ${test_src} ) 
@@ -119,3 +126,10 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/test.py DESTINATION ${CMAKE_CURRENT_SO
 
 #set the python library path
 set(PYTHON_LIB_PATH /usr/lib/python${PYTHON_VERSION})
+
+
+#run isolation matrix python tests: 
+add_test(NAME isolation_mat_python_test COMMAND isolation_mat_python_test)
+#run the python tests:
+
+add_test(NAME isolation_mat_python_test_python COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test.py) 
