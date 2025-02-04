@@ -3066,6 +3066,16 @@ namespace provallo
 
      
   }
+  template <class T> 
+  std::vector<T> 
+  operator*(const std::vector<T> &a, const matrix<T> &b) {
+    std::vector<T> result(b.size1()); 
+    for (size_t i = 0; i < b.size1(); ++i) 
+      for (size_t k = 0; k < b.size2(); ++k) 
+        result[i] += a[k] * b(i, k); 
+    return result;
+      
+  }
   template <class T>
   matrix<T>
   operator*(const matrix<T> &a, const matrix<T> &b)
