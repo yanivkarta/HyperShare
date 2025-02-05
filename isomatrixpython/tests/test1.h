@@ -14,7 +14,7 @@ using namespace provallo;
 //performance tests (7,8,9)
 
 
-TEST(test1, test1) {
+TEST(HyperMatrix, test1) {
     matrix<double> m1(3, 3);
     m1(0, 0) = 1;
     m1(0, 1) = 2;
@@ -38,7 +38,7 @@ TEST(test1, test1) {
 }
 
 //test matrix
-TEST(test2, test2) {
+TEST(HyperMatrix, test2) {
     matrix<double> m1(3, 3);
     m1(0, 0) = 1;
     m1(0, 1) = 2;
@@ -58,7 +58,7 @@ TEST(test2, test2) {
     
 }
 
-TEST(test3, test3) {
+TEST(HyperMatrix, test3) {
     matrix<double> m1(3, 3);
     m1(0, 0) = 1;
     m1(0, 1) = 2;
@@ -82,7 +82,7 @@ TEST(test3, test3) {
     EXPECT_EQ(m3(2, 2), 9);
 }
 
-TEST(test4, test4) {
+TEST(HyperMatrix, test4) {
     matrix<complex<double>> m1(10, 10);
     complex<double> c = complex<double>(-1, -1);
 
@@ -106,7 +106,7 @@ TEST(test4, test4) {
     
 }
 //test 5    
-TEST( test5, test5) {
+TEST( HyperMatrix, test5) {
     matrix<double> m1(3, 3);
     m1(0, 0) = 1;
     m1(0, 1) = 2;
@@ -119,7 +119,7 @@ TEST( test5, test5) {
 
 
 //vector matrix operations tests
-TEST(test6, test6) {
+TEST(HyperMatrix, test6) {
     vector<double> v1(3);
     v1[0] = 1;
     v1[1] = 2;
@@ -144,7 +144,7 @@ TEST(test6, test6) {
 //TEST 7
 //jacobian test
 
-TEST(test7, test7) {
+TEST(HyperMatrix, test7) {
     matrix<double> m1(3, 3);
     m1(0, 0) = 1;
     m1(0, 1) = 2;
@@ -169,7 +169,7 @@ TEST(test7, test7) {
 //test 8 jacobian test. 
 //define matrix a and b and test jacobian of a * b 
 
-TEST(test8, test8) {
+TEST(HyperMatrix, test8) {
   // Jacobi method
   // a1 : matrix
   // d : diagonal
@@ -223,7 +223,7 @@ TEST(test8, test8) {
 //test 9 eigenvalues and eigenvectors test 
 //define matrix a and test eigenvalues and eigenvectors of a 
 
-TEST(test9, test9) {
+TEST(HyperMatrix, test9) {
   matrix<double> a1(3, 3);
   a1(0, 0) = 1;
   a1(0, 1) = 2;
@@ -252,7 +252,7 @@ TEST(test9, test9) {
 
 //test 10 identity test 
 //define matrix a and test identity of a 
-TEST(test10, test10) {
+TEST(HyperMatrix, test10) {
   matrix<double> a1(3, 3);
   a1(0, 0) = 1;
   a1(0, 1) = 2;
@@ -274,7 +274,6 @@ TEST(test10, test10) {
   EXPECT_EQ(identity(2, 1), 0);
   EXPECT_EQ(identity(2, 2), 1);
 }
-
 
 #endif
 

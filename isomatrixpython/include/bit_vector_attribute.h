@@ -51,7 +51,7 @@ namespace provallo {
         bit_type(bit_type &&other) : _bits(other._bits) {}
         bit_type(const T &other) : _bits(other) {}
         bit_type(T &&other) : _bits(other) {}
-        bit_type(size_t i) : _bits(1 << i) {}
+        
 
 
         bit_type & operator=(const bit_type &other) { 

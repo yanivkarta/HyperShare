@@ -7,6 +7,7 @@
 #include "../include/info_helper.h"
 #include "../include/lstm.h"
 #include "../include/fast_matrix_forest.h"
+#include "../include/bit_vector_attribute.h"
 
 //google test:
 #include <gtest/gtest.h>
@@ -21,7 +22,7 @@ using namespace provallo;
 
 //TEST 11 build spinor,tensor and autoencoder
 //
-TEST( test11, test11) {
+TEST( spinor, test1) {
     
      //build spinor
      matrix<double> m(2, 2);
@@ -58,7 +59,7 @@ TEST( test11, test11) {
 //autoencoder test. 
 //build autoencoder with 10 input, 10 hidden and 10 output neurons
 
-TEST( test12, test12) {
+TEST( autoencoder, test12) {
     auto_encoder<double, double> a(10, 10, 10);
     std::uniform_real_distribution<> distribution(0.0, 1.0); 
     std::default_random_engine generator;
@@ -95,7 +96,7 @@ TEST( test12, test12) {
 
  
 //TEST 13 softmax test
-TEST( test13, test13) {
+TEST( softmax, test13) {
     
     
     //create a matrix of real data and a vector of labels :
@@ -208,9 +209,83 @@ TEST( test13, test13) {
 
 //TEST 11 - sampling_helper and fft / ftti transformation on random data samples
 //
-TEST(test14,test14) {
+TEST(sampling_helper,test14) {
     
+    //test fft capabilities of the sampling helper
+    sampling_helper<double> sampler;
+    
+    matrix<double>  random_sample(10,10);
+    std::default_random_engine generator;
+
+    std::uniform_real_distribution<> distribution(0.0, 1.0);    
+    
+
+    for(size_t i=0;i<10;i++)
+    {
+        for (size_t j=0;j<10;j++)
+        {
+            random_sample(i,j) = distribution(generator) / (1+i + j*distribution(generator) + 2*i*j);
+        }
+    }
+    matrix<complex<double>> result  = sampler.fft(random_sample);
+
+    matrix<complex<double>> result2 = sampler.ifft(result); 
+
+    matrix<complex<double>> delta = result2-result;
+
+    EXPECT_EQ(delta.sum(), 0.0);
+
 }
 
+//bit vector tests: 
+TEST(bit_vector,test1) {
+    uint8_t aa = 1;
+    uint8_t bb = 2;
+    uint8_t cc = 3;
+
+    bit_type<uint8_t,8> a(aa); 
+    bit_type<uint8_t,8> b(bb);
+
+    bit_type<uint8_t,8> c = a | b; 
+
+    EXPECT_EQ(c[0], 1);
+    EXPECT_EQ(c[1], 1);
+
+
+    bit_type<uint8_t,8> d = a & b; 
+
+    EXPECT_EQ(d[0], 0);
+    EXPECT_EQ(d[1], 0);
+
+    bit_type<uint8_t,8> e = a ^ b; 
+
+    EXPECT_EQ(e[0], 1);
+    EXPECT_EQ(e[1], 1);
+    
+    //test matrix of bits 
+    matrix<bit_type<uint8_t,8>> m(2,2);
+    m(0,0) = a; 
+    m(0,1) = b; 
+    m(1,0) = c; 
+    m(1,1) = d; 
+
+    EXPECT_EQ(m(0,0)[0], true);
+    EXPECT_EQ(m(0,1)[1], true);
+    EXPECT_EQ(m(1,0)[0], true);
+    EXPECT_EQ(m(1,1)[1], false);
+
+    //test bit vector of matrices 
+
+    matrix<bit_type<uint8_t,8>> m2(2,2);
+    m2 = m;
+    m2(0,0) = a;
+
+    EXPECT_EQ(m2(0,0)[0], true);
+    EXPECT_EQ(m2(0,1)[1], true);
+    EXPECT_EQ(m2(1,0)[0], true);
+    EXPECT_EQ(m2(1,1)[1], false);
+    
+
+}
 
 #endif
