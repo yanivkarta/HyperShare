@@ -159,12 +159,34 @@ TEST( test13, test13) {
         if(yy[i] == predictions[i])
         {
             correct_predictions++; 
+            true_positives++;
+        }
+        else
+        {
+            if(yy[i] > predictions[i])
+            {
+                false_negatives++;
+            }
+            else
+            {
+                false_positives++;
+            }   
+
+            if(yy[i] < predictions[i])
+            {
+                true_negatives++;
+            }
+            else
+            {
+                true_positives++;
+            } 
         }
     }
     auto const _epsilon = 1e-10;
     accuracy = correct_predictions/yy.size(); 
-    precision = true_positives/(true_positives+false_positives+_epsilon); 
-    recall = true_positives/(true_positives+false_negatives+_epsilon); 
+    precision = true_positives/(true_positives+false_positives+_epsilon);
+    recall = true_positives/(true_positives+false_negatives+_epsilon);    
+    
     f1_score = 2*precision*recall/(precision+recall);
 
     anomaly_ratio = false_positives/(false_positives+true_negatives+_epsilon);
@@ -176,9 +198,8 @@ TEST( test13, test13) {
     std::cout << "Recall: " << recall << std::endl;
     std::cout << "F1 Score: " << f1_score << std::endl;
     std::cout << "Anomaly Ratio: " << anomaly_ratio << std::endl;
-   
     
-    
+    EXPECT_EQ(accuracy>0.5, true); 
 } 
 
 #endif

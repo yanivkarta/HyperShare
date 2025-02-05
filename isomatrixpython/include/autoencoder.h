@@ -6508,7 +6508,7 @@ namespace provallo
                     weight(dist.first,i) = weight(dist.first,i) * (dist.second/total_dist);
                 }
  
-                std::cout << "[+] DEBUG : softmax_classifier::train distribution : "<<std::to_string(dist.first)<<" , "<<std::to_string(dist.second/total_dist)<<" ( label prob )" << std::endl; 
+                //std::cout << "[+] DEBUG : softmax_classifier::train distribution : "<<std::to_string(dist.first)<<" , "<<std::to_string(dist.second/total_dist)<<" ( label prob )" << std::endl; 
             }
 
             //balance distribution of labels:
@@ -6560,9 +6560,9 @@ namespace provallo
                 }
                 label_indices[i] = max_index;
                 
-                std::cout<<"[+] DEBUG : softmax_classifier::train : "<<std::to_string(i)<<" case," 
+                /*std::cout<<"[+] DEBUG : softmax_classifier::train : "<<std::to_string(i)<<" case," 
                 <<std::to_string(label_indices[i])<<" label, "<<std::to_string(prob/sum)<<" probability" 
-                << ", row sum : " << std::to_string(target.row_sum(i))<<    std::endl; 
+                << ", row sum : " << std::to_string(target.row_sum(i))<<    std::endl; */
 
             } 
             //done.
