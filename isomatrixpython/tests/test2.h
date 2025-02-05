@@ -3,6 +3,10 @@
 #include "../include/matrix.h"
 #include "../include/mmatrix.h"
 #include "../include/autoencoder.h"
+#include "../include/sampling_helper.h"
+#include "../include/info_helper.h"
+#include "../include/lstm.h"
+#include "../include/fast_matrix_forest.h"
 
 //google test:
 #include <gtest/gtest.h>
@@ -200,6 +204,13 @@ TEST( test13, test13) {
     std::cout << "Anomaly Ratio: " << anomaly_ratio << std::endl;
     
     EXPECT_EQ(accuracy>0.5, true); 
-} 
+}
+
+//TEST 11 - sampling_helper and fft / ftti transformation on random data samples
+//
+TEST(test14,test14) {
+    
+}
+
 
 #endif
