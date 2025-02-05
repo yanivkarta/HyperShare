@@ -10,27 +10,28 @@ class spinor
 {
     // storage of spinor
     matrix<T> m;
-    std::vector<T> spinor;
+    std::vector<T>_spinor;
     // constructor
 public:
-    spinor<T>(const matrix<T>& m) : m(m), spinor(m.size1() * m.size2())
+    spinor<T>(const matrix<T>& m) : m(m), _spinor(m.size1() * m.size2())
     {
         // construct spinor according to m
-        std::copy(m.data(), m.data() + m.size1() * m.size2(), spinor.begin());
+        std::copy(m.data(), m.data() + m.size1() * m.size2(), _spinor.begin());
     }
     //copy constructor
-    spinor<T>(const spinor<T>& other) : m(other.m), spinor(other.spinor) {} 
+    spinor<T>(const spinor<T>& other) : m(other.m), _spinor(other._spinor) {} 
     
     //convert to vector
-    operator std::vector<T>() const { return spinor; }
+    operator std::vector<T>() const { return _spinor; }
 
     // operate on the spinor using matrix multiplication
+    
     spinor<T> operator*(const matrix<T>& other) const {
         matrix<T> temp = m * other;
         return spinor<T>(temp);
     }
 
-    spinor operator*(const spinor& other) const {
+    spinor<T> operator*(const spinor<T>& other) const {
         matrix<T> temp = m * other.m;
         return spinor<T>(temp);
     }
@@ -127,6 +128,9 @@ public:
         return spinor<T>(temp);
 
     }
+    //operator (i, j)
+    T operator()(size_t i, size_t j) const { return m(i, j); } 
+
 
     virtual ~spinor() {}
 
@@ -138,10 +142,10 @@ class tensor : public matrix<T>
 {
     // storage of tensor
     matrix<T> m1, m2, m3;
-    std::vector<T> tensor;
+    std::vector<T> _tensor;
 
 public:
-    tensor<T>(const matrix<T>& m1, const matrix<T>& m2, const matrix<T>& m3) : m1(m1), m2(m2), m3(m3), tensor(m1.size1() * m1.size2() * m2.size2() * m3.size2())
+    tensor<T>(const matrix<T>& m1, const matrix<T>& m2, const matrix<T>& m3) : m1(m1), m2(m2), m3(m3), _tensor(m1.size1() * m1.size2() * m2.size2() * m3.size2())
     {
         // construct tensor according to m1, m2 and m3
         for (size_t i = 0; i < m1.size1(); i++)
@@ -152,17 +156,17 @@ public:
                 {
                     for (size_t l = 0; l < m3.size2(); l++)
                     {
-                        tensor[i * m1.size2() * m2.size2() * m3.size2() + j * m2.size2() * m3.size2() + k * m3.size2() + l] = m1(i, j) * m2(j, k) * m3(k, l);
+                        _tensor[i * m1.size2() * m2.size2() * m3.size2() + j * m2.size2() * m3.size2() + k * m3.size2() + l] = m1(i, j) * m2(j, k) * m3(k, l);
                     }
                 }
             }
         }
     }
     
-    tensor<T>(const std::vector<T>& tensor) : tensor(tensor) {
+    tensor<T>(const std::vector<T>& tensor_) : _tensor(tensor_) {
 
         //initialize m1, m2 and m3 from tensor
-        auto size = sqrt(tensor.size());
+        auto size = sqrt(_tensor.size());
         m1.resize(size, size);
         m2.resize(size, size);
         m3.resize(size, size);
@@ -176,9 +180,9 @@ public:
                 {
                     for (size_t l = 0; l < m3.size2(); l++)
                     {
-                        m1(i, j) = tensor[i * m1.size2() * m2.size2() * m3.size2() + j * m2.size2() * m3.size2() + k * m3.size2() + l];
-                        m2(j, k) = tensor[i * m1.size2() * m2.size2() * m3.size2() + j * m2.size2() * m3.size2() + k * m3.size2() + l];
-                        m3(k, l) = tensor[i * m1.size2() * m2.size2() * m3.size2() + j * m2.size2() * m3.size2() + k * m3.size2() + l]; 
+                        m1(i, j) = _tensor[i * m1.size2() * m2.size2() * m3.size2() + j * m2.size2() * m3.size2() + k * m3.size2() + l];
+                        m2(j, k) = _tensor[i * m1.size2() * m2.size2() * m3.size2() + j * m2.size2() * m3.size2() + k * m3.size2() + l];
+                        m3(k, l) = _tensor[i * m1.size2() * m2.size2() * m3.size2() + j * m2.size2() * m3.size2() + k * m3.size2() + l]; 
 
                     }
                 }
@@ -188,16 +192,16 @@ public:
     } 
 
     
-    tensor<T>(const matrix<T>& m1, const matrix<T>& m2, const matrix<T>& m3, const std::vector<T>& tensor) : m1(m1), m2(m2), m3(m3), tensor(tensor) {} 
+    tensor<T>(const matrix<T>& m1, const matrix<T>& m2, const matrix<T>& m3, const std::vector<T>& tensor) : m1(m1), m2(m2), m3(m3), _tensor(tensor) {} 
 
 
     
 
 
 
-    operator std::vector<T>() const { return tensor; }
+    operator std::vector<T>() const { return _tensor; }
     //operate on the tensor elements using operator overloading 
-    const T& operator()(size_t i, size_t j, size_t k, size_t l) const { return tensor[i * m1.size2() * m2.size2() * m3.size2() + j * m2.size2() * m3.size2() + k * m3.size2() + l]; } 
+    const T& operator()(size_t i, size_t j, size_t k, size_t l) const { return _tensor[i * m1.size2() * m2.size2() * m3.size2() + j * m2.size2() * m3.size2() + k * m3.size2() + l]; }  
 
     // operate on the tensor using matrix multiplication
     tensor<T> operator*(const matrix<T>& other) const {
@@ -249,11 +253,6 @@ public:
     tensor<std::complex<T>> conj() const{
         return tensor<std::complex<T>>(m1.complex_conjugate(), m2.complex_conjugate(), m3.complex_conjugate());
     }
-    //get the transpose of the tensor
-    tensor<T> T() const{
-        return tensor<T>(m1.T(), m2.T(), m3.T());
-    }   
-    //get the trace of the tensor
     T trace() const{
         return m1.trace() * m2.trace() * m3.trace();
     }
@@ -277,9 +276,9 @@ public:
     tensor<T> eigenvectors() const{
         return tensor<T>(m1.eigenvectors(), m2.eigenvectors(), m3.eigenvectors());
     }   
-    const size_t size() const { return tensor.size(); }
-    const T* data() const { return tensor.data(); }
-    T* data() { return tensor.data(); }
+    const size_t size() const { return _tensor.size(); }
+    const T* data() const { return _tensor.data(); }
+    T* data() { return _tensor.data(); }
 
     //get the eigenvalues and eigenvectors of the tensor
     void get_eigen_values_and_vectors(std::vector<T> &eigen_values, tensor<T> &eigen_vectors) const{

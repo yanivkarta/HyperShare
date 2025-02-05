@@ -133,3 +133,6 @@ add_test(NAME isolation_mat_python_test COMMAND isolation_mat_python_test)
 #run the python tests:
 
 add_test(NAME isolation_mat_python_test_python COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test.py) 
+include(GoogleTest)
+
+gtest_discover_tests(isolation_mat_python_test)

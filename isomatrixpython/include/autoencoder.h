@@ -700,16 +700,55 @@ namespace provallo
             
 
             forward(input, size);
-
             //copy the output
             
             //don't forget to update the gradients 
             backward(input, size, output, outputSize);
             update();
             
+        }
+        std::vector<real_t> score (T* input, T* output, size_t size)
+        {
+            std::vector<real_t> score(size);
+            //calculate mean squared error
+            for (size_t i = 0; i < size; i++)
+            {
+                score[i] = (input[i] - output[i]) * (input[i] - output[i]);
+            }
+            return score; 
 
 
 
+        }
+            
+            
+            
+        
+        void forward(T *input, size_t size)
+        {
+            for (size_t i = 0; i < size; i++)
+            {
+                hidden[i] = input[i];
+                hidden[i] = hidden[i] * weight1[i];
+                hidden[i] = hidden[i] + bias1[i];
+                hidden[i] = (this->*activationFunctionPtr)(hidden[i]);
+            }   
+            //don't forget to update the gradients
+
+
+        }
+
+        void backward(T *input, size_t size, T *output, size_t outputSize)
+        {
+            
+            for (size_t i = 0; i < outputSize; i++)
+            {
+                output[i] = hidden[i];
+                output[i] = output[i] * weight2[i];
+                output[i] = output[i] + bias2[i];
+                output[i] = (this->*activationFunctionPtr)(output[i]);
+            }   
+            //don't forget to update the gradients
         }
         void predict (const matrix<T>& input,  matrix<T>& output)
         {
@@ -5986,7 +6025,7 @@ namespace provallo
        friend class auto_encoder<T,real_x>;
        
        public:
-        softmax_classifier(size_t n_classes,size_t n_dimensions,real_t alpha=1.0,real_t lambda=0.025):auto_encoder<T,real_x>(n_dimensions,n_classes * n_dimensions,n_classes),weight(n_classes,n_dimensions),alpha(alpha),lambda(lambda) 
+        softmax_classifier(real_x n_classes,size_t n_dimensions,real_t alpha=1.0,real_t lambda=0.025):auto_encoder<T,real_x>(n_dimensions,n_classes * n_dimensions,n_classes),weight(n_classes,n_dimensions),alpha(alpha),lambda(lambda) 
         {
             this->n_classes = n_classes;
             this->n_dimensions = n_dimensions;
@@ -6022,7 +6061,6 @@ namespace provallo
             //done.
             
         }//constructor      
-
         softmax_classifier(size_t n_classes,size_t n_dimensions,real_t alpha,real_t lambda,real_t* weight1,real_t* weight2,real_t* bias1,real_t* bias2):auto_encoder<T,real_x>(n_dimensions,n_classes * n_dimensions,n_classes),weight(n_classes,n_dimensions),alpha(alpha),lambda(lambda) 
         {
             this->n_classes = n_classes;
@@ -6417,7 +6455,8 @@ namespace provallo
 
         
 
-        void train(const matrix<T>& input, std::vector<size_t>& label_indices) 
+        
+        void train(const matrix<T>& input, std::vector<real_x>& label_indices) 
         {
             //reset total samples and correct samples
             std::cout<<"[+] DEBUG : softmax_classifier::train cases# "<<std::to_string(input.size1())<<" ,"
@@ -6702,6 +6741,48 @@ namespace provallo
                 }
             }
         }
+        //predict with labels : 
+        void predict (provallo::matrix<T>& input,provallo::matrix<T>& output,std::vector<real_x>& labels) {
+            //fill the labels with the prediction from the input. 
+            //create an output matrix for the autoencoder
+            matrix<real_x> output_ae(input.rows(),input.cols()); 
+            //copy any label data to the output matrix 
+            for (size_t i = 0; i < labels.size(); i++)
+            {
+                output_ae(i,0) = labels[i];
+            }
+            auto_encoder<T,real_x>::predict(input,output_ae);
+            //softmax
+            forward(input,output);
+            //loss
+            real_t loss = 0.,loss_d=0.;
+            for (size_t i = 0; i < input.rows(); i++)
+            {
+                for (size_t j = 0; j < input.cols(); j++)
+                {
+                    loss_d = output(i,j) * std::log(output(i,j));
+                    if(loss_d!=-NAN&&loss_d!=NAN)
+                        loss += loss_d;
+                    else
+                        loss += 0.;
+                }
+            }   
+            loss = -loss;
+            this->loss = loss;
+            this->accuracy = 1.0 - loss;
+            //update labels with the softmax output
+            for (size_t i = 0; i < labels.size(); i++)
+            {
+                labels[i] = output(i,0);
+            }
+
+            
+            
+            //done
+
+                         
+
+        }
         //predict
         void predict(  provallo::matrix<T>& input,provallo::matrix<T>& output)
         {
@@ -6738,20 +6819,29 @@ namespace provallo
 
             
         }
-        void test(const matrix<T>& input ,std::vector<size_t>& target_)
-        {
-            std::vector<real_t> target(  target_.size() );
-            for (size_t i = 0; i < target_.size(); i++)
+        void test(const matrix<T>& input ,std::vector<real_x>& target_)
+        { 
+
+            //reset total samples and correct samples
+            this->total_samples = 0;
+            this->correct_samples = 0.;
+            //autoencoder :
+            matrix<T> output(input);  
+            auto_encoder<T,real_x>::predict(input,output);
+            //softmax :
+            //target:
+            matrix<T> target(input.rows(),n_classes);
+            for (size_t i = 0; i < input.rows(); i++)
             {
-                target[i] = real_t(target_[i]);
+                for (size_t j = 0; j < n_classes; j++)
+                {
+                    target(i,j) = target_[i]==j?1.:0.;
+                }
+               // target_matrix(i,target[i]) = target[i];
             }
+            //test
+            test(input,target); 
             
-            test(input,target);
-            
-            for ( size_t i = 0; i < target.size(); i++)
-            {
-                target_[i] = size_t(target[i]);
-            }
 
         }
         //test with labels indices
@@ -7044,7 +7134,7 @@ namespace provallo
         }
         virtual ~softmax_classifier() override
         {
-         if( !auto_encoder<real_t>::inputDim || !auto_encoder<real_t>::hiddenDim || !auto_encoder<real_t>::outputDim )
+         if( !this->inputDim || !this->hiddenDim || !this->outputDim)
                 return; 
             
             if(this->input!=nullptr)
