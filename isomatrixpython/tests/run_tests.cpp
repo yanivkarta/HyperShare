@@ -8,6 +8,7 @@
 #include "test2.h"
 
 
+std::atomic_uint64_t provallo::tag_hyperplane::hplane_count(0); 
 
 
 

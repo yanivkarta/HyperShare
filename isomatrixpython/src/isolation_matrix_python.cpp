@@ -3,6 +3,8 @@
 // Path: src/fast_matrix_forest.cpp 
 //include all the necessary headers for the fast matrix forest
 //use FastMatrixForest class to create a forest of fast matrix trees from Python 
+//fix the crash in the python interface, by using the FastMatrixForest class instead of the FastMatrixForestF32U32 class 
+//
 #include "../include/python_interface.h"
 #include "../include/fast_matrix_forest.h" 
 #include "../include/autoencoder.h"
@@ -15,6 +17,11 @@
 #include <memory>
 #include <algorithm>
 #include <iterator> 
+
+
+//TODO: fix race condition when loading the shared library
+
+
 
 
 typedef FastMatrixForestF32U32 FastMatrixForest;
@@ -79,6 +86,8 @@ typedef FastMatrixForestF32U32 FastMatrixForest;
     {
         PyObject* py_data = nullptr; 
         PyObject* py_labels = nullptr;
+        //lock the GIL:
+        PyGILState_STATE state = PyGILState_Ensure(); 
         //check if args are a tuple,ndarray or a list and extract the data and the labels: 
         if(args->ob_type->tp_name=="tuple")
         {
@@ -97,8 +106,11 @@ typedef FastMatrixForestF32U32 FastMatrixForest;
         }
         else
         {
+            PyGILState_Release(state);
             return nullptr;
         }
+
+        PyGILState_Release(state);
 
         return self->fit(py_data,py_labels);
     }   
@@ -320,11 +332,14 @@ const std::string to_string(PyObject* obj)
 
 extern "C" PyObject* FastMatrixForest_create_python_fast_matrix_forest(PyObject* self, PyObject* args , PyObject* kwds =nullptr, PyObject* extra_args = nullptr, PyObject* extra_kwds = nullptr )
 {
+    try {
+
     PyObject* py_data = nullptr;
     PyObject* py_labels = nullptr;
     //validate the content of the argument pointer:
     if(args == nullptr)
     {
+        PyErr_SetString(PyExc_RuntimeError,"Invalid argument - null pointer");  
         return nullptr;
     }   
     //validate the type of the argument:
@@ -338,8 +353,13 @@ extern "C" PyObject* FastMatrixForest_create_python_fast_matrix_forest(PyObject*
          return nullptr;
     }
    
+    
     std::string name = std::string(args->ob_type->tp_name);
-
+    //increment the reference count:
+    if (self != nullptr)
+    {
+        Py_INCREF(self);
+    }
     if(name.compare("tuple")==0)
     {
         py_data = PyTuple_GetItem(args,0);
@@ -356,24 +376,37 @@ extern "C" PyObject* FastMatrixForest_create_python_fast_matrix_forest(PyObject*
         py_data = args;
         py_labels = PyTuple_GetItem(args,1);
     }
-
     
     FastMatrixForestF32U32* self_ = new FastMatrixForestF32U32();
+    if (self_ == nullptr)
+    {
+        PyErr_SetString(PyExc_RuntimeError,"Failed to allocate memory for the object");
+        return nullptr;
+    }
     self_->ob_type = &FastMatrixForestType;
-    //fit the object:
-
     //check if it's a tuple,ndarray or a list and extract the data and the labels: 
     if(py_data == nullptr || py_labels == nullptr)
     {
-        return nullptr;
+         return (PyObject*)self_;
     }
-
+    
     self_->fit(py_data,py_labels);
     
+    //decrement the reference count:
+    if (self != nullptr)
+    {
+        Py_DECREF(self);
+    }
     
     return (PyObject*)self_;
-
-
+    
+    }
+    catch(const std::exception& e)
+    {
+        PyErr_SetString(PyExc_RuntimeError,e.what());
+    }   
+    return nullptr;
+    
 }   
 
 
@@ -385,7 +418,6 @@ extern "C" PyObject* FastMatrixForest_delete_python_fast_matrix_forest(PyObject*
     FastMatrixForestF32U32_dealloc(self_);
     //return None:
     Py_RETURN_NONE;
-
 
 }   
 
@@ -468,9 +500,43 @@ extern "C" PyObject* FastMatrixForest_get_scores(FastMatrixForest* self, PyObjec
 
 } 
 
-    
-        
-    //end of the Python interface for the FastMatrixForestF32U32 class
+
+//PyInit_fast_matrix_forest:
+PyObject* PyInit_fast_matrix_forest(void) {
+    //create the type:
+    static PyObject* Module = nullptr;
+    if(!Module)
+    {
+        Module = PyModule_Create(&FastMatrixForestF32U32Module); 
+        if(!Module)
+        {
+            return nullptr;
+        }
+
+    }
+    //add the type to the module:
+    Py_INCREF(&FastMatrixForestType);
+    PyModule_AddObject( Module, "FastMatrixForest", (PyObject*)&FastMatrixForestType);
+    //return the module:
+    return  Module;
+} 
+ 
+//shared object entry, sync python and c++:
+#if defined(_WIN32) || defined(__WIN32__) || defined(_WIN64) || defined(__WIN64__)
+__declspec(dllexport) PyObject* PyInit_fast_matrix_forest(void) {
+    return PyInit_fast_matrix_forest();
+}
+#else 
+//shared object startup:
+__attribute__ ((constructor)) void init() {
+    PyImport_AppendInittab("fast_matrix_forest", PyInit_fast_matrix_forest); 
+
+}
+#endif
+
+
+//
+//end of the Python interface for the FastMatrixForestF32U32 class
 
 // Path: src/fast_matrix_tree.cpp
 //get the accuracy of the super_tree<float32,uint32_t> on the data:

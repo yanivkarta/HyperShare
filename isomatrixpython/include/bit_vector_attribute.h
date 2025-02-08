@@ -71,6 +71,25 @@ namespace provallo {
          _bits = other;} return *this;
         }
 
+        //arithmetic operators
+        bit_type operator+(const bit_type &other) const { return bit_type(_bits + other._bits); } 
+        bit_type operator-(const bit_type &other) const { return bit_type(_bits - other._bits); } 
+        //division
+        bit_type operator/(const bit_type &other) const { 
+            //avoid floating point exception
+            if(other._bits == 0 || _bits == 0) {
+                return bit_type(0);
+            } else {
+                return bit_type(_bits / other._bits);
+            }
+
+        } 
+        //modulus
+        bit_type operator%(const bit_type &other) const { return bit_type(_bits % other._bits); } 
+        //multiplication 
+        bit_type operator*(const bit_type &other) const { return bit_type(_bits * other._bits); } 
+
+
         bool operator[](size_t i) const { return (_bits & (1 << i)) != 0; }
         bool operator[](size_t i) { return (_bits & (1 << i)) != 0; }
 
@@ -115,6 +134,7 @@ namespace provallo {
 
         //bit_type & operator<<=(size_t i) { _bits <<= i; return *this; }
         //bit_type & operator>>=(size_t i) { _bits >>= i; return *this; }
+
 
         bit_type & set() { _bits = ~0; return *this; }
         bit_type & reset() { _bits = 0; return *this; }

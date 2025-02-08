@@ -1905,7 +1905,7 @@ class super_tree {
         }
         //update the projection plane over the path lens of the new data: 
         //convert predict_y to std::vector<U> : 
-        std::vector<U> predict_y_vec(predict_y.data(),predict_y.data()+predict_y.rows()*predict_y.cols());  
+        std::vector<U> predict_y_vec(predict_y.data(),predict_y.data()+predict_y.size());  
         //get the prediction plane over the path lens of the new data:
         std::vector<U> y_pred(XX.rows(),U(0));
         for(size_t i=0;i<XX.rows();i++)
@@ -1940,8 +1940,8 @@ class super_tree {
             _super_tree_hplane(i%_super_tree_hplane.rows(),i%_super_tree_hplane.cols()).hplane_feature_value_left=predict_y_vec[i];
             _super_tree_hplane(i%_super_tree_hplane.rows(),i%_super_tree_hplane.cols()).hplane_feature_value_right=predict_y_vec[i];
             //update the super_tree projections according to the hplane values
-            _super_tree_values_projection(i%_super_tree_hplane.rows(),i%_super_tree_hplane.cols())=predict_y(i%_super_tree_hplane.rows(),i%_super_tree_hplane.cols()); 
-            _super_tree_probabilities(i%_super_tree_hplane.rows(),i%_super_tree_hplane.cols())=predict_y(i%_super_tree_hplane.rows(),i%_super_tree_hplane.cols()); 
+            _super_tree_values_projection(i%_super_tree_hplane.rows(),i%_super_tree_hplane.cols())=predict_y[i];
+            _super_tree_probabilities(i%_super_tree_hplane.rows(),i%_super_tree_hplane.cols())=predict_y[i]; 
              //apply log(1+exp(x)) to y_pred to map to expected min-max labels 
             y_pred[i]=std::log(1+std::exp(predict_y_vec[i]));
             yy =predict_y_vec;

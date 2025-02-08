@@ -284,8 +284,194 @@ TEST(bit_vector,test1) {
     EXPECT_EQ(m2(0,1)[1], true);
     EXPECT_EQ(m2(1,0)[0], true);
     EXPECT_EQ(m2(1,1)[1], false);
+
+    //test matrix operations on bit vectors: 
+
+    matrix<bit_type<uint8_t,8>> m3(2,2);
+    m3(0,0) = a; 
+    m3(0,1) = b; 
+    m3(1,0) = c; 
+    m3(1,1) = d;
+
+    matrix<bit_type<uint8_t,8>> m4(2,2);
+    m4= m3+m2;
+
+
+    m4=m4-m3; 
+
+    EXPECT_EQ(m4(0,0)[0], true);
+    EXPECT_EQ(m4(0,1)[1], true);
+    EXPECT_EQ(m4(1,0)[0], true);
+    EXPECT_EQ(m4(1,1)[1], false);
+}
+
+//FAST Matrix tests: 
+TEST(fast_matrix,test1) {
     
 
+    matrix<double> m(10,10);
+    //labels :
+    std::vector<uint32_t> labels(10);
+    std::default_random_engine generator;
+    std::uniform_real_distribution<> distribution(0.0, 1.0);    
+    for(size_t i=0;i<10;i++)
+    {
+        for (size_t j=0;j<10;j++)
+        { 
+            m(i,j) = distribution(generator) / (1+i + j*distribution(generator) + 2*i*j);
+     
+        }
+        labels[i] = i;
+    }
+
+    super_tree<double,uint32_t> fmf(m,labels);
+
+    
+    matrix<double> m2(10,10);
+    //labels :
+    std::vector<uint32_t> labels2(10);
+    std::default_random_engine generator2;
+    std::uniform_real_distribution<> distribution2(0.0, 1.0);    
+    for(size_t i=0;i<10;i++)
+    {
+        for (size_t j=0;j<10;j++)
+        { 
+            m2(i,j) = distribution2(generator2) / (1+i + j*distribution2(generator2) + 2*i*j);
+     
+        }
+        labels2[i] = i;
+    }
+
+    fmf.fit(m2,labels2);
+
+
+    std::vector<uint32_t> predictions(10);
+
+    
+    //regenerated data
+    for(size_t i=0;i<10;i++)
+    {
+        for (size_t j=0;j<10;j++)
+        { 
+            m2(i,j) = distribution(generator) / (1+i + j*distribution(generator) + 2*i*j);
+     
+        }
+        labels2[i] = i;
+
+    }
+    
+    
+
+    predictions = fmf.predict(m2,labels2);
+
+    EXPECT_EQ(predictions[0], labels2[0]);
+    EXPECT_EQ(predictions[1], labels2[1]);
+    EXPECT_EQ(predictions[2], labels2[2]);
+    EXPECT_EQ(predictions[3], labels2[3]);
+    EXPECT_EQ(predictions[4], labels2[4]);
+    EXPECT_EQ(predictions[5], labels2[5]);
+    EXPECT_EQ(predictions[6], labels2[6]);
+    EXPECT_EQ(predictions[7], labels2[7]);
+    EXPECT_EQ(predictions[8], labels2[8]);
+    EXPECT_EQ(predictions[9], labels2[9]);
+    
+    //test accuracy: 
+    size_t correct_predictions = 0;  
+    real_t accuracy = 0.,precision=0.,recall=0.,f1_score=0.; 
+    real_t true_positives=0.,true_negatives=0.,false_positives=0.,false_negatives=0.; 
+    real_t anomaly_ratio = 0.0; 
+    for(size_t i=0;i<10;i++)
+    {
+        if(labels2[i] == predictions[i])
+        {
+            correct_predictions++; 
+            true_positives++;
+        }
+        else
+        {
+            if(labels2[i] > predictions[i])
+            {
+                false_negatives++;
+            }
+            else
+            {
+                false_positives++;
+            }
+        }
+    }
+    auto const _epsilon = 1e-10;
+    accuracy = correct_predictions/10;
+    precision = true_positives/(true_positives+false_positives+_epsilon);
+    recall = true_positives/(true_positives+false_negatives+_epsilon);
+    f1_score = 2*precision*recall/(precision+recall+_epsilon);
+    anomaly_ratio = false_positives/(10+_epsilon);
+    EXPECT_EQ(accuracy>0.99, true);
+    EXPECT_EQ(precision>0.99, true);
+    EXPECT_EQ(recall>0.99, true);
+    EXPECT_EQ(f1_score>0.99, true);
+    EXPECT_EQ(anomaly_ratio<0.01, true);
+
+    //log the results: 
+    std::cout<<"Accuracy: "<<accuracy<<std::endl;
+    std::cout<<"Precision: "<<precision<<std::endl;
+    std::cout<<"Recall: "<<recall<<std::endl;
+    std::cout<<"F1 Score: "<<f1_score<<std::endl;
+    std::cout<<"Anomaly Ratio: "<<anomaly_ratio<<std::endl;    
 }
+TEST( evaluation_metrics, test3)
+{
+    //loss,huber loss: 
+    matrix<double> m(10,10);
+    //labels :
+    std::vector<uint32_t> labels(10),labels2(10);
+    std::default_random_engine generator;
+    std::uniform_real_distribution<> distribution(0.0, 1.0);    
+    for(size_t i=0;i<10;i++)
+    {
+        for (size_t j=0;j<10;j++)
+        { 
+            m(i,j) = distribution(generator) / (1+i + j*distribution(generator) + 2*i*j);
+     
+        }
+        labels[i] = i;
+    } 
+
+    matrix<double> m2(10,10);
+    for(size_t i=0;i<10;i++)
+    {
+        for (size_t j=0;j<10;j++)
+        { 
+            m2(i,j) = distribution(generator) / (1+i + j*distribution(generator) + 2*i*j);
+     
+        }
+        labels2[i] = i;
+    }
+ 
+    auto const _epsilon = 1e-10; 
+    real_t loss=0.,huber_loss=0.,mae=0.,mse=0.,rmse=0.; 
+    for (size_t i=0;i<10;i++)
+    {
+        for (size_t j=0;j<10;j++)
+        {
+            loss += std::abs(m(i,j)-m2(i,j)); 
+            huber_loss += std::abs(m(i,j)-m2(i,j));
+            mae += std::abs(m(i,j)-m2(i,j));
+            mse += std::pow(m(i,j)-m2(i,j),2);
+            rmse += std::pow(m(i,j)-m2(i,j),2);
+        }
+    }
+    loss = loss/100;
+    huber_loss = huber_loss/100;
+    mae = mae/100;
+    mse = mse/100;
+    rmse = std::sqrt(rmse/100);
+    EXPECT_EQ(loss<0.1, true);
+    EXPECT_EQ(huber_loss<0.1, true);
+    EXPECT_EQ(mae<0.1, true);
+    EXPECT_EQ(mse<0.2, true);
+    EXPECT_EQ(rmse<0.2, true);
+
+}
+
 
 #endif
