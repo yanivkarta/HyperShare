@@ -473,5 +473,52 @@ TEST( evaluation_metrics, test3)
 
 }
 
+TEST(bio_simulation, test4)
+{
+    //initialize generators, use helmholz machine:
+    gaussian_spike_train_generator<real_t> generator    ;
+    //set inputs:
+    
+
+
+    std::vector<uint8_t> labels(10),predictions(10);
+    
+
+    //oligoneucleotide :
+    oligomer_sequence o_sequence(10);   
+
+    //generate data:
+    for (size_t i=0;i<10;i++)
+    {
+        auto x = generator.generate(); 
+        auto y = generator.generate();
+        //convert to oligonucleotide sequence:
+        for (size_t j=0;j<10;j++)
+        {
+            //if x==0 and y==0: A 
+            //if x>0 and y==0: C
+            //if x==0 and y>0: G
+            //if x>0 and y>0: T
+
+            dna_base b = (x[j]==0. && y[j]==0.) ? dnaA : (x[j]>0. && y[j]==0.) ? dnaC : (x[j]==0.&& y[ j]>0.) ? dnaG : dnaT; 
+            o_sequence[i].push_back(b);
+        }
+    } //    
+    
+    std::cout<<"bit sequence: "<<std::endl;
+    std::cout<<o_sequence<<std::endl; 
+    std::cout<<"dna sequence: "<<std::endl;
+    for (size_t i=0;i<10;i++)
+    {
+        for (size_t j=0;j<10;j++)
+        {
+            char x = (o_sequence[i][j] == dnaA) ? 'A' : (o_sequence[i][j] == dnaC) ? 'C' : (o_sequence[i][j] == dnaG) ? 'G' : 'T'; 
+            std::cout<<x;
+        }
+        std::cout<<std::endl;
+    }
+    
+
+}
 
 #endif

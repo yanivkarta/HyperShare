@@ -1453,7 +1453,11 @@ namespace provallo
 
 
         }   
-
+        //add missing getters : 
+        //get F_phase:
+        //get W_phase:
+        //get Q_phase:
+        //get DKL_phase
         //refine the generator with EM algorithm :
         //gamma : mixing proportions
         //https://en.wikipedia.org/wiki/Mixture_model#Gaussian_mixture_model
