@@ -17,6 +17,116 @@
 
 using namespace std;
 using namespace provallo;
+    //define MT-CO1 (Cytochrome C oxidase subunit I) gene sequence: 
+    //        1 ccatccggaa gtgtatattt taattttacc aggattcggt ataatttctc acgttattag
+    //61 acaggaaaga aataaaaagg aaacttttgg gaccttagga ataatctatg caataatggc
+    //121 aattggttta ttaggtttca ttgtatgagc acatcatata tttacagttg gaatagatgt
+    //181 tgatacccgt gcttatttta cttcagctac aataattatt gctgtgccca caggcattaa
+    //241 aatttttagt tgactagcta ctttacatgg aacccaatta aattattcac cctcaatgct
+    //301 atgatcttta ggatttgttt ttttatttac agtaggaggc ctaactgggg tagttcttgc
+    //361 taattcttca attgatattg ttttacatga tacgtattat gtagtagctc attttcatta
+    //421 tgttctttcc atgggagcag tatttgctat tatagctggc tttgttcact gatttccttt
+    //481 atttactggt gtttcattga acaataaatt tttaaaaatc cagtttactt taatattttt
+    //541 gggtgttaat ataacctttt tccctcaaca ttttttagga ttaagcggta tacctcgccg
+    //601 gtattctgat tatcctgatg cttacacaac ttgaaatatt atttcatcaa ttggatcctt
+    //661 aatttcttta attagaatca ttttattatt atttattatt tgagaagctt ttatttcagc
+    //721 tcgaaaaaga ctatctcccc taagaataac atcttcaatt gaatgacttc aagaaatgcc
+    //781 tcctgctgaa cacagatatt ctgaacttcc tatattgtct aatttc :
+
+    const oligomer_sequence MT_CO1 = {
+        {dnaC, dnaC, dnaA, dnaT, dnaC, dnaC, dnaG, dnaG, dnaA, dnaA},//ccatccggaa
+        {dnaG,dnaT,dnaG,dnaT,dnaA,dnaT,dnaA,dnaT,dnaA,dnaT,dnaT,dnaT}, //gtgtatattt
+        {dnaT,dnaA,dnaA,dnaT,dnaT,dnaT,dnaT,dnaA,dnaC,dnaC}, //taattttacc
+        {dnaA,dnaG,dnaG,dnaA,dnaT,dnaT,dnaC,dnaG,dnaG,dnaT}, //aggattcggt
+        {dnaA,dnaT,dnaA,dnaA,dnaT,dnaT,dnaT,dnaC,dnaT,dnaC}, //ataatttctc
+        {dnaA,dnaC,dnaG,dnaT,dnaT,dnaA,dnaT,dnaT,dnaA,dnaG} ,//acgttattag
+        {dnaA,dnaC,dnaA,dnaG,dnaG,dnaA,dnaA,dnaA,dnaG,dnaA}, //acaggaaaga
+        {dnaA,dnaA,dnaT,dnaA,dnaA,dnaA,dnaA,dnaA,dnaG,dnaG},//aataaaaagg
+        {dnaA,dnaA,dnaA,dnaC,dnaT,dnaT,dnaT,dnaT,dnaG,dnaG},//aaacttttgg
+        {dnaG,dnaA,dnaC,dnaC,dnaT,dnaT,dnaA,dnaG,dnaG,dnaA},// gaccttagga
+        {dnaA,dnaT,dnaA,dnaA,dnaT,dnaC,dnaT,dnaA,dnaT,dnaG},// ataatctatg 
+        {dnaC,dnaA,dnaA,dnaT,dnaA,dnaA,dnaT,dnaG,dnaG,dnaC},//caataatggc
+        {dnaA,dnaA,dnaT,dnaT,dnaG,dnaG,dnaT,dnaT,dnaT,dnaA},//aattggttta 
+        {dnaT,dnaT,dnaA,dnaG,dnaG,dnaT,dnaT,dnaT,dnaC,dnaA},//ttaggtttca
+        {dnaT,dnaT,dnaG,dnaT,dnaA,dnaT,dnaG,dnaA,dnaG,dnaC},// ttgtatgagc
+        {dnaA,dnaC,dnaA,dnaT,dnaC,dnaA,dnaT,dnaA,dnaT,dnaA},// acatcatata 
+        {dnaT,dnaT,dnaT,dnaA,dnaC,dnaA,dnaG,dnaT,dnaT,dnaG},//tttacagttg 
+        {dnaG,dnaA,dnaA,dnaT,dnaA,dnaG,dnaA,dnaT,dnaG,dnaT},//gaatagatgt
+        
+        {dnaT,dnaG,dnaA,dnaT,dnaA,dnaC,dnaC,dnaC,dnaG,dnaT},//tgatacccgt
+        {dnaG,dnaC,dnaT,dnaT,dnaA,dnaT,dnaT,dnaT,dnaT,dnaA},// gcttatttta 
+        {dnaC,dnaT,dnaT,dnaC,dnaA,dnaG,dnaC,dnaT,dnaA,dnaC},//cttcagctac
+        {dnaA,dnaA,dnaT,dnaA,dnaA,dnaT,dnaT,dnaA,dnaT,dnaT},// aataattatt 
+        {dnaG,dnaC,dnaT,dnaG,dnaT,dnaG,dnaC,dnaC,dnaC,dnaA},//gctgtgccca 
+        {dnaC,dnaA,dnaG,dnaG,dnaC,dnaA,dnaT,dnaT,dnaA,dnaA},//caggcattaa
+        {dnaA,dnaA,dnaT,dnaT,dnaT,dnaT,dnaT,dnaA,dnaG,dnaT},//aatttttagt 
+        {dnaT,dnaG,dnaA,dnaC,dnaT,dnaA,dnaG,dnaC,dnaT,dnaA},// tgactagcta 
+        {dnaC,dnaT,dnaT,dnaT,dnaA,dnaC,dnaA,dnaT,dnaG,dnaG},// ctttacatgg 
+        {dnaA,dnaA,dnaC,dnaC,dnaC,dnaA,dnaA,dnaT,dnaT,dnaA},//aacccaatta 
+        {dnaA,dnaA,dnaT,dnaT,dnaA,dnaT,dnaT,dnaC,dnaA,dnaC},// aattattcac 
+        {dnaC,dnaC,dnaT,dnaC,dnaA,dnaA,dnaT,dnaG,dnaC,dnaT},//cctcaatgct
+        {dnaA,dnaT,dnaG,dnaA,dnaT,dnaC,dnaT,dnaT,dnaT,dnaA},//atgatcttta
+        {dnaG,dnaG,dnaA,dnaT,dnaT,dnaT,dnaG,dnaT,dnaT,dnaT},// ggatttgttt 
+        {dnaT,dnaT,dnaT,dnaT,dnaA,dnaT,dnaT,dnaT,dnaA,dnaC},//ttttatttac 
+        {dnaA,dnaG,dnaT,dnaA,dnaG,dnaG,dnaA,dnaG,dnaG,dnaC},// agtaggaggc 
+        {dnaC,dnaT,dnaA,dnaA,dnaC,dnaT,dnaG,dnaG,dnaG,dnaG},//ctaactgggg 
+        {dnaT,dnaA,dnaG,dnaT,dnaT,dnaC,dnaT,dnaT,dnaG,dnaC},//tagttcttgc
+        {dnaT,dnaA,dnaA,dnaT,dnaT,dnaC,dnaT,dnaT,dnaC,dnaA},//taattcttca 
+        {dnaA,dnaT,dnaT,dnaG,dnaA,dnaT,dnaA,dnaT,dnaT,dnaG},//attgatattg 
+        {dnaT,dnaT,dnaT,dnaT,dnaA,dnaC,dnaA,dnaT,dnaG,dnaA},//ttttacatga 
+        {dnaT,dnaA,dnaC,dnaG,dnaT,dnaA,dnaT,dnaT,dnaA,dnaT},// tacgtattat 
+        
+        {dnaG,dnaT,dnaA,dnaG,dnaT,dnaA,dnaG,dnaC,dnaT,dnaC},//gtagtagctc 
+        {dnaA,dnaT,dnaT,dnaT,dnaT,dnaC,dnaA,dnaT,dnaT,dnaA}, //attttcatta
+        {dnaT,dnaG,dnaT,dnaT,dnaC,dnaT,dnaT,dnaT,dnaC,dnaC},// tgttctttcc
+        {dnaA,dnaT,dnaG,dnaG,dnaG,dnaA,dnaG,dnaC,dnaA,dnaG},// atgggagcag 
+        {dnaT,dnaA,dnaT,dnaT,dnaT,dnaG,dnaC,dnaT,dnaA,dnaT},//tatttgctat 
+        {dnaT,dnaA,dnaT,dnaA,dnaG,dnaC,dnaT,dnaG,dnaG,dnaC},//tatagctggc
+        {dnaT,dnaT,dnaT,dnaG,dnaT,dnaT,dnaC,dnaA,dnaC,dnaT},// tttgttcact 
+        {dnaG,dnaA,dnaT,dnaT,dnaT,dnaC,dnaC,dnaT,dnaT,dnaT},//gatttccttt
+
+        {dnaA,dnaT,dnaT,dnaT,dnaA,dnaC,dnaT,dnaG,dnaG,dnaT},//atttactggt 
+        {dnaG,dnaT,dnaT,dnaT,dnaC,dnaA,dnaT,dnaT,dnaG,dnaA},//gtttcattga 
+        {dnaA,dnaC,dnaA,dnaA,dnaT,dnaA,dnaA,dnaA,dnaT,dnaT},//acaataaatt 
+        {dnaT,dnaT,dnaT,dnaA,dnaA,dnaA,dnaA,dnaA,dnaT,dnaC},//tttaaaaatc 
+        {dnaC,dnaA,dnaT,dnaT,dnaT,dnaT,dnaA,dnaC,dnaT,dnaT},//cagtttactt
+        {dnaT,dnaA,dnaA,dnaT,dnaA,dnaT,dnaT,dnaT,dnaT,dnaT},// taatattttt
+
+
+        
+        {dnaG,dnaG,dnaG,dnaT,dnaG,dnaT,dnaT,dnaA,dnaA,dnaT},//gggtgttaat 
+        {dnaA,dnaT,dnaA,dnaA,dnaC,dnaC,dnaT,dnaT,dnaT,dnaT},//ataacctttt 
+        {dnaT,dnaC,dnaC,dnaC,dnaT,dnaC,dnaA,dnaA,dnaC,dnaA},//tccctcaaca 
+        {dnaT,dnaT,dnaT,dnaT,dnaT,dnaT,dnaA,dnaG,dnaG,dnaA},//ttttttagga 
+        {dnaT,dnaT,dnaA,dnaA,dnaG,dnaC,dnaG,dnaG,dnaT,dnaA},//ttaagcggta 
+        {dnaT,dnaA,dnaC,dnaC,dnaT,dnaC,dnaG,dnaC,dnaC,dnaG}, //tacctcgccg
+
+        {dnaG,dnaT,dnaA,dnaT,dnaT,dnaC,dnaT,dnaG,dnaA,dnaT},//gtattctgat 
+        {dnaT,dnaA,dnaT,dnaC,dnaC,dnaT,dnaG,dnaA,dnaT,dnaG},//tatcctgatg 
+        {dnaC,dnaT,dnaT,dnaA,dnaC,dnaA,dnaC,dnaA,dnaA,dnaC},//cttacacaac 
+        {dnaT,dnaT,dnaG,dnaA,dnaA,dnaA,dnaT,dnaA,dnaT,dnaT},//ttgaaatatt
+        {dnaA,dnaT,dnaT,dnaT,dnaC,dnaA,dnaT,dnaC,dnaA,dnaA},// atttcatcaa 
+        {dnaT,dnaT,dnaG,dnaG,dnaA,dnaT,dnaC,dnaC,dnaT,dnaT},//ttggatcctt
+        
+        {dnaA,dnaA,dnaT,dnaT,dnaT,dnaC,dnaT,dnaT,dnaT,dnaA},//aatttcttta 
+        {dnaA,dnaT,dnaT,dnaA,dnaG,dnaA,dnaA,dnaT,dnaC,dnaA},//attagaatca 
+        {dnaT,dnaT,dnaT,dnaT,dnaA,dnaT,dnaT,dnaA,dnaT,dnaT},//ttttattatt 
+        {dnaA,dnaT,dnaT,dnaT,dnaA,dnaT,dnaT,dnaA,dnaT,dnaT},//atttattatt 
+        {dnaT,dnaG,dnaA,dnaG,dnaA,dnaA,dnaG,dnaC,dnaT,dnaT},//tgagaagctt 
+        {dnaT,dnaT,dnaA,dnaT,dnaT,dnaT,dnaC,dnaA,dnaG,dnaC},//ttatttcagc
+        {dnaT,dnaC,dnaG,dnaA,dnaA,dnaA,dnaA,dnaA,dnaG,dnaA},//tcgaaaaaga 
+        {dnaC,dnaT,dnaA,dnaT,dnaC,dnaT,dnaC,dnaC,dnaC,dnaC},//ctatctcccc 
+        {dnaT,dnaA,dnaA,dnaG,dnaA,dnaA,dnaT,dnaA,dnaA,dnaC},//taagaataac
+        {dnaA,dnaT,dnaC,dnaT,dnaT,dnaC,dnaC,dnaA,dnaA,dnaT},// atcttcaatt 
+        {dnaG,dnaA,dnaA,dnaT,dnaG,dnaA,dnaC,dnaT,dnaT,dnaC},//gaatgacttc 
+        {dnaA,dnaA,dnaG,dnaA,dnaA,dnaA,dnaT,dnaG,dnaC,dnaC},//aagaaatgcc
+        {dnaT,dnaC,dnaC,dnaT,dnaG,dnaC,dnaT,dnaG,dnaA,dnaA},//tcctgctgaa 
+        {dnaC,dnaA,dnaC,dnaA,dnaG,dnaA,dnaT,dnaA,dnaT,dnaT},//cacagatatt 
+        {dnaC,dnaT,dnaG,dnaA,dnaA,dnaC,dnaT,dnaT,dnaC,dnaC},//ctgaacttcc 
+        {dnaT,dnaA,dnaT,dnaA,dnaT,dnaT,dnaG,dnaT,dnaC,dnaT},//tatattgtct 
+        {dnaA,dnaA,dnaT,dnaT,dnaT,dnaT,dnaC,dnaN,dnaN,dnaN} // aatttc :
+
+    };
 
 //test 11..20
 
@@ -473,6 +583,47 @@ TEST( evaluation_metrics, test3)
 
 }
 
+
+bool validate_sequence(const oligomer_sequence& sequence)
+{
+    bool valid = true;
+    for (size_t i = 0; i < sequence.size(); i++)
+    {
+        for (size_t j =0;j < sequence[i].size(); j++)
+        {
+            if (sequence[i][j] != dnaA && sequence[i][j] != dnaC && sequence[i][j] != dnaG && sequence[i][j] != dnaT) 
+            {
+                valid = false;
+                break;
+            }            
+            //check if the sequence is valid, neucloeotide A,C,G,T sequence can be used 
+            //only once in the sequence, repetition is not allowed unless it is the last one in the sequence 
+            //if the sequence is not valid, return false
+            if (i != sequence.size() - 1 && sequence[i][j] == sequence[i + 1][j])
+            {
+                valid = false;
+                break;
+            }
+        }
+    }
+    return valid;   
+}
+bool is_valid_addition(const oligomer_sequence& sequence1, dna_base base , const size_t index1, const size_t index2) 
+{
+    bool valid = true;
+    //check if the indexes are valid
+    if (index1 >= sequence1.size() || (index2-1) >= sequence1[index1].size()) 
+    {
+        return false;
+    }
+
+    if(sequence1[index1][index2-1] == base ) 
+    {
+        valid = false;
+    }
+    return valid;
+
+}
 TEST(bio_simulation, test4)
 {
     //initialize generators, use helmholz machine:
@@ -490,6 +641,7 @@ TEST(bio_simulation, test4)
     //generate data:
     for (size_t i=0;i<10;i++)
     {
+        
         auto x = generator.generate(); 
         auto y = generator.generate();
         //convert to oligonucleotide sequence:
@@ -499,12 +651,47 @@ TEST(bio_simulation, test4)
             //if x>0 and y==0: C
             //if x==0 and y>0: G
             //if x>0 and y>0: T
+            bool valid = false;
+            
+            auto previous_tail = j>0?o_sequence[i][j-1]:dnaN;
+            dna_base previous = previous_tail;
+            //check if the sequence is valid, neucloeotide A,C,G,T sequence can be used 
+            //only once in the sequence, repetition is not allowed unless it is the last one in the sequence 
+            
 
             dna_base b = (x[j]==0. && y[j]==0.) ? dnaA : (x[j]>0. && y[j]==0.) ? dnaC : (x[j]==0.&& y[ j]>0.) ? dnaG : dnaT; 
+            if(previous_tail == b)
+            {
+                if (dnaA == b)
+                {
+                    x = generator.generate();
+                    y = generator.generate();
+                }
+                
+                //not valid,must change b to a different base 
+                b ^=   previous_tail;
+                if (b == previous_tail)
+                {
+                    //AA
+
+                    b^=b.flip();
+                }
+                valid = true;
+            }
+            
+            
+
+            //check if the sequence is valid, neucloeotide A,C,G,T sequence can be used 
+            //only once in the sequence, repetition is not allowed unless it is the last one in the sequence 
+            //if the sequence is not valid, return false
+            
             o_sequence[i].push_back(b);
+            
+
+            
         }
     } //    
-    
+
     std::cout<<"bit sequence: "<<std::endl;
     std::cout<<o_sequence<<std::endl; 
     std::cout<<"dna sequence: "<<std::endl;
@@ -512,13 +699,175 @@ TEST(bio_simulation, test4)
     {
         for (size_t j=0;j<10;j++)
         {
-            char x = (o_sequence[i][j] == dnaA) ? 'A' : (o_sequence[i][j] == dnaC) ? 'C' : (o_sequence[i][j] == dnaG) ? 'G' : 'T'; 
+            char x = (o_sequence[i][j] == dnaA) ? 'A' : (o_sequence[i][j] == dnaC) ? 'C' : (o_sequence[i][j] == dnaG) ? 'G' : (o_sequence[i][j] == dnaT ) ?'T' : 'X'; 
             std::cout<<x;
         }
+        //std::cout<<std::endl;
+    }
+    std::cout<<std::endl;
+    //step forward 10 times:
+    size_t steps = 10;
+    auto old_sequence = o_sequence;
+
+    do 
+    {
+    
+    o_sequence.clear();
+    o_sequence.resize(10);
+    // regenerate data:
+    for (size_t i=0;i<10;i++)
+    {
+        auto x = generator.generate(); 
+        auto y = generator.generate();
+        //convert to oligonucleotide sequence:
+        for (size_t j=0;j<10;j++)
+        {
+            //if x==0 and y==0: A 
+            //if x>0 and y==0: C
+            //if x==0 and y>0: G 
+            //if x>0 and y>0: T
+            dna_base b = (x[j]==0. && y[j]==0.) ? dnaA : (x[j]>0. && y[j]==0.) ? dnaC : (x[j]==0.&& y[ j]>0.) ? dnaG : dnaT; 
+            o_sequence[i].push_back(b);
+        }    
+    } //    
+    
+    std::cout<<"dna sequence: "<<std::endl;
+    for (size_t i=0;i<10;i++)
+    {
+        for (size_t j=0;j<10;j++)
+        {
+            char x = (o_sequence[i][j] == dnaA) ? 'A' : (o_sequence[i][j] == dnaC) ? 'C' : (o_sequence[i][j] == dnaG) ? 'G' : (o_sequence[i][j] == dnaT ) ?'T' : 'X'; 
+            std::cout<<x;
+        }
+        //std::cout<<std::endl;
+    }
+    std::cout<<std::endl;   
+    }
+    while (steps--);
+
+
+    //xor o_sequence with old_sequence:
+    for (size_t i=0;i<10;i++)
+    {
+        for (size_t j=0;j<10;j++)
+        {
+            o_sequence[i][j] ^= old_sequence[i][j];
+        }
+    }
+    //print o_sequence:
+
+    std::cout<<"xor dna  subsequence: "<<std::endl;
+    for (size_t i=0;i<10;i++)
+    {
+        for (size_t j=0;j<10;j++)
+        {   
+            char x = (o_sequence[i][j] == dnaA) ? 'A' : (o_sequence[i][j] == dnaC) ? 'C' : (o_sequence[i][j] == dnaG) ? 'G' : (o_sequence[i][j] == dnaT ) ?'T' : 'X'; 
+            std::cout<<x;
+        }    
         std::cout<<std::endl;
     }
-    
 
+        
+
+    
 }
 
+TEST(bio_simulation, MT_C01)
+{
+    // test MT_C01 over generated sequences 
+
+    oligomer_sequence seq ;
+    boltzman_base<real_t> bolz(MT_CO1.size(),MT_CO1[0].size(),MT_CO1.size(),MT_CO1[0].size(),1);        
+    vector<vector<real_t> > MT_CO1_real(MT_CO1.size());
+    for(size_t i=0;i<MT_CO1.size();++i)
+    {
+        MT_CO1_real[i].resize( MT_CO1[i].size());
+
+        for(size_t j=0;j<MT_CO1[i].size();++j)
+        {
+            //transform dna values to real values 
+            auto value = MT_CO1[i][j];
+
+            MT_CO1_real[i][j]= (value==dnaA) ? 0.0 : (value==dnaC) ? -1.0 : (value==dnaG) ? 1.0 : (value==dnaT) ? 2.0 : 0.0; 
+
+
+            //(value==0.0) ? dnaA : (value<0.0) ? dnaC : (value>0.0) ? dnaG : (value!=value) ? dnaT : dnaN; 
+        }
+        
+        bolz.refine(MT_CO1_real[i]);
+
+        
+    }
+    //process input for bolzman: 
+
+    cout<<"Boltz DNA:"<<endl;
+    //fit the generator : 
+    seq.resize(MT_CO1.size());
+    for (size_t i=0;i<MT_CO1.size();i++) 
+    {
+        real_t step = bolz.step();
+        const auto& generated_real = bolz.generate();
+        //translate generated_real to oligo
+        //validate GENERATED_REAL > 1 
+        //
+        EXPECT_EQ(generated_real.size()>1,true);
+        
+        size_t j=0;
+        seq[i].resize(generated_real.size());
+        for(auto & value : generated_real)
+        {
+            auto& prev = seq[i][j];
+            seq[i][j++] = (value==0.0) ? dnaA : (value<0.0) ? dnaC : (value>0.0) ? dnaG : (value!=value) ? dnaT : dnaN; 
+            if(prev==seq[i][j-1])
+            {
+                
+                prev++;
+                if(seq[i][j]==seq[i][j-1])
+                {
+                    seq[i][j-1]++;
+                }
+            }
+            else 
+            {
+                prev--;
+            }
+            string x = (seq[i][j-1]==dnaA)?"A":(seq[i][j-1]==dnaC)?"C":(seq[i][j-1]==dnaG)?"G":(seq[i][j-1]==dnaT)?"T":"X";
+            cout<<x;
+        }
+        
+        
+        
+    }
+    //compare to   Cytochrome C oxidase subunit I:
+    //check distance from generated oligo sequence to MT_C01:
+    real_t distance = 0.0;
+    for (size_t i=0;i<MT_CO1.size();i++) 
+    {
+        for (size_t j=0;j<MT_CO1[i].size();j++)
+        {
+            distance += (seq[i][j] != MT_CO1[i][j]) ? 1.0 : 0.0;
+        }
+    }
+    distance /= (MT_CO1.size() * MT_CO1[0].size());
+    cout<<endl; 
+    cout<<"distance: "<<distance<<endl;
+    cout<<endl; 
+    EXPECT_NEAR(distance,0.0,1.0);
+
+    //print oligo sequence:
+    cout<<"Oligo sequence: "<<endl;
+    for (size_t i=0;i<MT_CO1.size();i++) 
+    {
+        for (size_t j=0;j<MT_CO1[i].size();j++)
+        { 
+            string x = (seq[i][j]==dnaA)?"A":(seq[i][j]==dnaC)?"C":(seq[i][j]==dnaG)?"G":(seq[i][j]==dnaT)?"T":"X";
+            cout<<x;
+        }
+     
+    }
+    cout<<endl; 
+
+
+
+}
 #endif

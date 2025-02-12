@@ -174,7 +174,7 @@ namespace provallo
 
         std::vector<real_t> _output; //output of the generator
 
-        std::vector<real_t> _input; //aggregate input of the generator
+        std::vector<T> _input; //aggregate input of the generator
 
 
         public:
@@ -204,7 +204,7 @@ namespace provallo
             _t_step = _t_min;
             _t = _t_min;
         }
-        void step()
+        real_t step()
         {
             //update the time :
             _t += _t_step;
@@ -221,6 +221,7 @@ namespace provallo
                 _t_step = _t_min;
             }
             
+            return _t_step;
         
         }
         void set_sigma(real_t sigma)
@@ -362,12 +363,13 @@ namespace provallo
             return _G;
         }
         //set input
-        void set_input(const std::vector<real_t> &input)
+        void set_input(const std::vector<T> &input)
         {
+            if(input.size()>0)
             _input = input;
         }
         //get input
-        const std::vector<real_t> & get_input() const
+        const std::vector<T> & get_input() const
         {
             return _input;
         }
@@ -474,11 +476,15 @@ namespace provallo
         //refine the generator with EM algorithm :
         //gamma : mixing proportions 
         //https://en.wikipedia.org/wiki/Mixture_model#Gaussian_mixture_model
-        real_t refine(const std::vector<real_t> input)
+        real_t refine(const std::vector<T>& input)
         {
             real_t result=0.0;
             this->_p = 0.5;
             this->_q = 1.0 - this->_p;
+            
+            if(input.size()==0)
+            return 0.;
+
             if( this->_input!=input) {
                 this->_input = input;
             }
@@ -555,9 +561,9 @@ namespace provallo
                 result += generative[i];
 
                 //debug _p and _q :
-                std::cout<<"_p : "<<_p<<std::endl;
-                std::cout<<"_q : "<<_q<<std::endl;
-                std::cout<<"left:"<<std::to_string((input.size()-i)*_G.size())<<std::endl;            
+                //std::cout<<"_p : "<<_p<<std::endl;
+                //std::cout<<"_q : "<<_q<<std::endl;
+                //std::cout<<"left:"<<std::to_string((input.size()-i)*_G.size())<<std::endl;            
                 } //end for i
         
             _p= _p/input.size();
@@ -667,8 +673,8 @@ namespace provallo
             {
                 _output[i] = F[i]==F[i]?F[i] : 0.;
             }  
-            std::cout<<"[+] infohelper debug gaussian refine returning: "
-            <<std::to_string(result/real_t(input.size()))<< std::endl; 
+            //std::cout<<"[+] infohelper debug gaussian refine returning: "
+            //<<std::to_string(result/real_t(input.size()))<< std::endl; 
             return result / real_t(input.size()); 
 
         }
@@ -681,6 +687,8 @@ namespace provallo
         {
             _t_step = _t_min;
             _t = _t_min;
+            
+
         }
 
         //generate a spike train :
@@ -1637,37 +1645,66 @@ namespace provallo
                 _output[i] = gaussian();
             }
             
-           
+        
+        }
+        //reset steps:
+        void reset_steps()
+        {
+            _t = 0.0;
+            _t_step = 0.0;
+            _dt = 0.1; //_dt must never be 0
 
         }
         std::vector<real_t> generate()
         {
-            //generate a spike train :
             std::vector<real_t> result;
-            std::uniform_real_distribution<real_t> distribution(0.0, 1.0); 
+            std::uniform_real_distribution<real_t> distribution(0.0, 1.0);
             std::uniform_int_distribution<int> distribution_int(0, 1);
             std::random_device rd;
             std::mt19937 gen(rd());
+            reset_steps();
+            //generate a spike train :
             while (_t_step < _t_max)
             {
                 _t_step += _dt;
                 _t += _dt;
-                if (distribution(gen) < _p)
+                //use _q and _p to generate a spike train,with 1.0,0.0,-INFINITY,INFINITY and -1.0 
+                auto dis = distribution(gen);
+                //check if the random number is less than _p or more than _q 
+                if (dis < _p && dis > 0.0)
                 {
                     result.push_back(1.0);
                 }
-                else
+                else if (dis > _q && dis < 1.0)
                 {
-                    result.push_back(0.0);
+                    result.push_back(-1.0);
                 }
-            }   
+                else if (dis == 0.0)
+                {
+                    result.push_back(INFINITY);
+                }
+                else if (dis == 1.0)
+                {
+                    result.push_back(-INFINITY);
+                }
+                else
+                
+                {
+                    result.push_back(dis);
+                } 
+                if(result.size() >= _n){
+                    break;
+                }
+                
+            }
+            this->_output = result;
             return result;
         }   
         void refine()
         {
             refine(_input);
         }
-        real_t refine(const std::vector<real_t> input)
+        real_t refine(const std::vector<T>& input)
         {
             real_t res = 0.0;
             _generator.set_input(input);
@@ -1715,11 +1752,11 @@ namespace provallo
         {
             _sigma = sigma;
         }
-    //Lyapunov  L(I) = <lnQ[v]-lnP[v]>_Q + Nvk  -lnZ
-    //free energy F(I) = -L(I)
-    //KL divergence DKL(I) = -L(I) - H(I)
-    //entropy H(I) = -<lnQ[v]>_Q - Nvk + lnZ
-    //Z = sum_v P[v] = sum_v exp(-L(I))
+        //Lyapunov  L(I) = <lnQ[v]-lnP[v]>_Q + Nvk  -lnZ
+        //free energy F(I) = -L(I)
+        //KL divergence DKL(I) = -L(I) - H(I)
+        //entropy H(I) = -<lnQ[v]>_Q - Nvk + lnZ
+        //Z = sum_v P[v] = sum_v exp(-L(I))
 
         void set_mu(real_t mu)
         {
@@ -1999,7 +2036,7 @@ namespace provallo
         }
 
         //step :
-        real_t step()
+        real_t step() 
         {
             real_t result = 0.0;
             _generator.set_input(_input);
