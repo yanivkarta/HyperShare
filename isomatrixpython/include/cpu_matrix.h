@@ -313,10 +313,13 @@ namespace provallo {
                 free(this->data_); //
 
             aligned_data    = (T *)aligned_alloc(64, other.size1_ * other.size2_ * sizeof(T)); 
+            for(size_t i = 0; i < other.size1_ * other.size2_; i++) 
+                aligned_data[i] = other.data_[i];
             this->data_ = aligned_data;
             
             
-            std::copy(other.data_, other.data + other.size1_ * other.size2_, this->data_);
+            
+
         }
 
         cpu_matrix(cpu_matrix<T> &&other) : matrix<T>(other.size1_, other.size2_) {
@@ -580,33 +583,17 @@ namespace provallo {
     }   
     //double 
     template <> cpu_matrix<double> cpu_matrix<double>::operator*(const cpu_matrix<double> &other) {
-     
+    
         cpu_matrix<double> result(this->size1_, other.size2_); 
-        //use __asm__ __volatile__ to avoid inconsistent operand constraints in an ‘asm’ error 
+        for (size_t i = 0; i < this->size1_; i++) {
+            for (size_t j = 0; j < other.size2_; j++) {
+                result(i, j) = this->data_[i * this->size2_ + j] * other.data_[j * other.size2_ + i]; 
 
-        //load the matrix ptrs and the size to the registers 
-        //use vfmadd231pd to multiply the two vectors and add the result to the third vector 
-        //store the result in the result vector data ptr. 
-        __asm__ __volatile__ ("movq %0, %%rax" : : "r" (this->data_)); 
-        __asm__ __volatile__ ("movq %0, %%rbx" : : "r" (other.data_)); 
-        __asm__ __volatile__ ("movq %0, %%rcx" : : "r" (result.data_)); 
-        __asm__ __volatile__ ("movq %0, %%rdx" : : "r" (this->size1_)); 
-        __asm__ __volatile__ ("movq %0, %%rsi" : : "r" (this->size2_)); 
-        __asm__ __volatile__ ("movq %0, %%rdi" : : "r" (result.size2_)); 
-        __asm__ __volatile__ ("movq %0, %%r8" : : "r" (other.size2_)); 
-        __asm__ __volatile__ ("movq %0, %%r9" : : "r" (other.size1_)); 
-        //use vfmadd231pd to multiply the two vectors and add the result to the third vector 
-        __asm__ __volatile__ ("movq %rax, %xmm0"); 
-        __asm__ __volatile__ ("movq %rbx, %xmm1"); 
-        __asm__ __volatile__ ("vfmadd231pd %xmm1, %xmm0, %xmm2"); 
-        __asm__ __volatile__ ("movq %xmm2, %rcx"); 
-        //store the result in the result matrix data ptr
-        __asm__ __volatile__ ("movq %rcx, %rdx"); 
-        __asm__ __volatile__ ("movq %rsi, %rcx");
+            }
 
-        //return
-        return result;
 
+        }   
+        return result;     
     }   
     //long double
     template <> cpu_matrix<long double> cpu_matrix<long double>::operator*(const cpu_matrix<long double> &other) {

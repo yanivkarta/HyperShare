@@ -8,7 +8,7 @@
 #include "../include/lstm.h"
 #include "../include/fast_matrix_forest.h"
 #include "../include/bit_vector_attribute.h"
-
+#include "../include/cpu_matrix.h"
 //google test:
 #include <gtest/gtest.h>
 
@@ -870,4 +870,35 @@ TEST(bio_simulation, MT_C01)
 
 
 }
+
+TEST(cpu_matrix_test, cpu_matrix1)
+{
+    
+    cpu_matrix<double> m(10,10);
+    m(0,0) = 1.0;
+    m(0,1) = 2.0;
+    m(1,0) = 3.0;
+    m(1,1) = 4.0;
+
+    EXPECT_EQ(m(0,0),1.0);
+    EXPECT_EQ(m(0,1),2.0);
+    EXPECT_EQ(m(1,0),3.0);
+    EXPECT_EQ(m(1,1),4.0);
+
+    cpu_matrix<double> m2(m);
+    EXPECT_EQ(m2(0,0),1.0);
+    EXPECT_EQ(m2(0,1),2.0);
+    EXPECT_EQ(m2(1,0),3.0);
+    EXPECT_EQ(m2(1,1),4.0);
+
+
+    cpu_matrix<double> m3(m2*m);
+    EXPECT_EQ(m3(0,0),1.0);
+    EXPECT_EQ(m3(0,1),6.0);
+    EXPECT_EQ(m3(1,0),6.0);
+    EXPECT_EQ(m3(1,1),16.0);
+
+
+
+}   
 #endif
