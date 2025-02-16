@@ -310,32 +310,60 @@ extern PyTypeObject FastMatrixForestType ;
         }   
         return py_forest_dict;
     }
-    PyObject* predict_proba(PyObject* py_data)
+    PyObject* predict_proba(PyObject* self , PyObject* args)    
     {
+        PyObject* py_data = nullptr;
+        //extract the arguments, if it's a single argument:
+        if(args->ob_type == nullptr)
+        {
+            return nullptr;
+        }
+        else if(args->ob_type->tp_name == 0x0)
+        {
+            return nullptr;
+        }
+        else if(args->ob_type->tp_name == 0x0)
+        {
+            return nullptr;
+        }
+        std::string name = std::string(args->ob_type->tp_name);
+        if(name.compare("tuple")==0)
+        { 
+            py_data = PyTuple_GetItem(args,0);
+        }
+        else if(name.compare("list")==0)
+        {
+            py_data = PyList_GetItem(args,0);
+        }
+        else
+        {
+            return nullptr;
+        }
         //import numpy
         WrappedNumPy<real_t>::import_array();
         //get the data from numpy array
-        provallo::matrix<real_t> data;
+        provallo::matrix<real_t> data(1,1);
         //get the data
         if(py_data!=nullptr)
         {   
             //get the data
             //get the dimensions of the data :
-            PyObject* py_shape = WrappedNumPy<real_t>::shape(py_data);
+            PyObject* py_shape = WrappedNumPy<real_t>::shape(py_data); 
             //get the number of dimensions
-            int ndim = PyList_Size(py_shape); 
+            int ndim = PyList_Size(py_shape);
             //get the shape of the data
             std::vector<size_t> shape(ndim);
             for(int i=0;i<ndim;i++)
             {
                 shape[i] = PyLong_AsLong(PyList_GetItem(py_shape,i));
-            }   
+            }
+
             size_t rows = shape[0];
             size_t cols = shape[1];
-            provallo::matrix<real_t> data(rows,cols);   
+            data.resize(rows,cols);
 
             //get the data
-            for (size_t i = 0; i < rows; i++)   
+            for (size_t i = 0; i < rows; i++)
             {
                 for (size_t j = 0; j < cols; j++)
                 {
@@ -343,7 +371,16 @@ extern PyTypeObject FastMatrixForestType ;
                 }
             }   
         }
+
+        if(data.rows()==0)
+        {
+            PyErr_SetString(PyExc_RuntimeError,"Data is empty");
+            return nullptr;
+        }
+
+
         //predict the labels
+        
         std::vector<real_t> prediction_probs = predict_proba_internal(data);
         //return the labels
         PyObject* py_prediction_probs = PyList_New(prediction_probs.size());

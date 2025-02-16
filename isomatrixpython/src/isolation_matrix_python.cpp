@@ -412,12 +412,7 @@ extern "C" PyObject* FastMatrixForest_create_python_fast_matrix_forest(PyObject*
 //FastMatrixForest_predict_proba:
 extern "C" PyObject* FastMatrixForest_predict_proba(FastMatrixForest* self, PyObject* args) 
 {
-    PyObject* py_data = nullptr;
-    if(!PyArg_ParseTuple(args,"O",&py_data))
-    {
-        return nullptr;
-    }
-    return self->predict_proba(py_data);
+    return self->predict_proba(self,args);
 }
 
 extern "C" PyObject* FastMatrixForest_delete_python_fast_matrix_forest(PyObject* self, PyObject* args)
