@@ -20,6 +20,10 @@
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
+#include <thread>
+
+//lock guard
+#include <mutex>
 //stdint :
 #include <stdint.h>
 #include <ctype.h>
@@ -37,8 +41,15 @@ extern PyTypeObject FastMatrixForestType ;
     PyObject* py_forest = nullptr; 
     PyObject* py_forest_dict = nullptr;
     PyObject* py_forest_list = nullptr;
+    protected:
     std::vector<uint32_t> last_scores = {};
+    std::recursive_mutex py_forest_mutex;
+
     public:
+    const std::vector<uint32_t>& get_last_scores() const {
+        
+    return last_scores;
+    }
 
     //implement accessors for the forest 
     //constructor recieves properties of the forest 
@@ -48,7 +59,10 @@ extern PyTypeObject FastMatrixForestType ;
     //constructor
     FastMatrixForestF32U32()
     {
-        InitPy();
+        //guard mutex 
+        std::lock_guard<std::recursive_mutex> lock(py_forest_mutex); 
+
+        init_py();
         //initialize the dictionary of the properties
 
         if(py_forest_dict==nullptr)
@@ -66,6 +80,15 @@ extern PyTypeObject FastMatrixForestType ;
         PyDict_SetItemString(py_forest_dict,"momentum",PyFloat_FromDouble(0.0));
         PyDict_SetItemString(py_forest_dict,"divergence",PyFloat_FromDouble(0.0));
         // finish the initialization of the dictionary 
+
+        //initialize the list of the properties
+        PyList_Append(py_forest_list,PyFloat_FromDouble(0.0)); 
+        PyList_Append(py_forest_list,PyFloat_FromDouble(0.0));
+        PyList_Append(py_forest_list,PyFloat_FromDouble(0.0));
+        // finish the initialization of the list
+        //register predict_proba
+        PyType_Ready(&FastMatrixForestType); 
+
         
     }
     //fit method:
@@ -148,6 +171,9 @@ extern PyTypeObject FastMatrixForestType ;
         PyObject* ret = nullptr;
         
         try{
+        //lock the mutex
+        std::lock_guard<std::recursive_mutex> lock(py_forest_mutex); 
+
         WrappedNumPy<real_t>::import_array();
         //get the data and labels from numpy arrays
         provallo::matrix<real_t> data;
@@ -284,6 +310,69 @@ extern PyTypeObject FastMatrixForestType ;
         }   
         return py_forest_dict;
     }
+    PyObject* predict_proba(PyObject* py_data)
+    {
+        //import numpy
+        WrappedNumPy<real_t>::import_array();
+        //get the data from numpy array
+        provallo::matrix<real_t> data;
+        //get the data
+        if(py_data!=nullptr)
+        {   
+            //get the data
+            //get the dimensions of the data :
+            PyObject* py_shape = WrappedNumPy<real_t>::shape(py_data);
+            //get the number of dimensions
+            int ndim = PyList_Size(py_shape); 
+            //get the shape of the data
+            std::vector<size_t> shape(ndim);
+            for(int i=0;i<ndim;i++)
+            {
+                shape[i] = PyLong_AsLong(PyList_GetItem(py_shape,i));
+            }   
+            size_t rows = shape[0];
+            size_t cols = shape[1];
+            provallo::matrix<real_t> data(rows,cols);   
+
+            //get the data
+            for (size_t i = 0; i < rows; i++)   
+            {
+                for (size_t j = 0; j < cols; j++)
+                {
+                    data(i,j) = WrappedNumPy<real_t>::data(py_data)[i*cols+j];
+                }
+            }   
+        }
+        //predict the labels
+        std::vector<real_t> prediction_probs = predict_proba_internal(data);
+        //return the labels
+        PyObject* py_prediction_probs = PyList_New(prediction_probs.size());
+        for(size_t i=0;i<prediction_probs.size();i++)
+        {
+            PyList_SetItem(py_prediction_probs,i,PyFloat_FromDouble(prediction_probs[i]));
+            //Debug output that the item was added : 
+            PySys_WriteStdout("[+]Added item %zu\n",i);
+        }
+        return py_prediction_probs;
+    } 
+    //predict_proba_internal
+    std::vector<real_t> predict_proba_internal(provallo::matrix<real_t> data) 
+    {
+        //predict the labels
+        std::vector<real_t> prediction_probs;
+        try{
+            
+            prediction_probs = forest->get_anomaly_score(data); 
+
+        }catch(std::exception& e)
+        {
+            PyErr_SetString(PyExc_RuntimeError,e.what());
+          
+        } 
+        return prediction_probs;
+
+
+    }
     //get the super tree properties:
     PyObject* get_properties_list()
     {
@@ -305,17 +394,16 @@ extern PyTypeObject FastMatrixForestType ;
         }   
         return py_forest_list;
     }   
-    //PyObject initialization:
-    void InitPy()
+    // Initialize the Python object
+    void init_py()
     {
-        //initialize the Python object:
-        PyObject* self = this;
+        // Initialize the Python object
+        PyObject* self_ = this;
         
-        self->ob_refcnt = 1;
-        //initialize the Python object:
+        self_->ob_refcnt = 1;
+        // Initialize the Python object
         
-        self->ob_type =  &FastMatrixForestType; 
-        
+        self_->ob_type = &FastMatrixForestType;
     }
     static void dealloc(FastMatrixForestF32U32* self)
     {

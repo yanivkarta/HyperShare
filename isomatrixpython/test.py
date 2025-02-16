@@ -116,11 +116,29 @@ class FastMatrixForest(object):
     
     def predict_proba(self, data):
         #predict the anomaly scores for the data
-        scores = np.zeros(data.shape[0], dtype=np.float64)
-        ret = iso.FastMatrixForest_get_scores( data.ctypes.data_as(ctypes.c_void_p), scores.ctypes.data_as(ctypes.c_void_p), data.shape[0]) 
-        print ("prediction shape: ", scores.shape)
-        #print ("ret shape: ", ret)
+        try :
+            scores = np.zeros(data.shape[0], dtype=np.float64)
+            ret = iso.FastMatrixForest_predict_proba( data.ctypes.data_as(ctypes.c_void_p), scores.ctypes.data_as(ctypes.c_void_p), data.shape[0]) 
+            print ("prediction shape: ", scores.shape)
+            #print ("ret shape: ", ret)
+            return scores
+        except Exception as e:
+            print("Error in predict_proba: ", e)
+            return None 
         
+    def get_scores(self, data):
+        #predict the anomaly scores for the data
+        try :
+            scores = np.zeros(data.shape[0], dtype=np.float64)
+            ret = iso.FastMatrixForest_get_scores( data.ctypes.data_as(ctypes.c_void_p), scores.ctypes.data_as(ctypes.c_void_p), data.shape[0]) 
+            print ("prediction shape: ", scores.shape)
+            #print ("ret shape: ", ret)
+            return scores
+        except Exception as e:
+            print("Error in get_scores: ", e)
+            return None 
+        
+        #predict the anomaly scores for the data
         return scores
     
     def predict(self, data):
@@ -479,5 +497,7 @@ if __name__ == '__main__':
     plt.savefig('ConfusionMatrix.png')
     plt.show()
     plt.close()
-
+    #run ./isolation_mat_python_test unit tests:
+    sys.argv = ['isolation_mat_python_test']
     unittest.main()
+    #run ./isolation_mat_python_test unit tests:

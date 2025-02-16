@@ -17,6 +17,7 @@
 #include <memory>
 #include <algorithm>
 #include <iterator> 
+//increase the max size of std::vector:
 
 
 //TODO: fix race condition when loading the shared library
@@ -340,17 +341,17 @@ extern "C" PyObject* FastMatrixForest_create_python_fast_matrix_forest(PyObject*
     if(args == nullptr)
     {
         PyErr_SetString(PyExc_RuntimeError,"Invalid argument - null pointer");  
-        return nullptr;
+        Py_RETURN_NONE;
     }   
     //validate the type of the argument:
 
     if(args->ob_type == nullptr || args->ob_type->tp_name == 0x0) 
     {
-         return nullptr;
+        Py_RETURN_NONE;
     }
     if(args->ob_type->tp_name ==  nullptr)
     {
-         return nullptr;
+        Py_RETURN_NONE;
     }
    
     
@@ -405,10 +406,19 @@ extern "C" PyObject* FastMatrixForest_create_python_fast_matrix_forest(PyObject*
     {
         PyErr_SetString(PyExc_RuntimeError,e.what());
     }   
-    return nullptr;
-    
-}   
+    Py_RETURN_NONE;
+}     
 
+//FastMatrixForest_predict_proba:
+extern "C" PyObject* FastMatrixForest_predict_proba(FastMatrixForest* self, PyObject* args) 
+{
+    PyObject* py_data = nullptr;
+    if(!PyArg_ParseTuple(args,"O",&py_data))
+    {
+        return nullptr;
+    }
+    return self->predict_proba(py_data);
+}
 
 extern "C" PyObject* FastMatrixForest_delete_python_fast_matrix_forest(PyObject* self, PyObject* args)
 {
@@ -424,81 +434,89 @@ extern "C" PyObject* FastMatrixForest_delete_python_fast_matrix_forest(PyObject*
 //FastMatrixForest_get_scores:
 extern "C" PyObject* FastMatrixForest_get_scores(FastMatrixForest* self, PyObject* args)
 {
-    //make sure that the arguments are valid:
-    if(args == nullptr)
-    {
-      
-      PyErr_SetString(PyExc_RuntimeError,"Warning: no arguments passed to get_scores"); 
-        
-    }
-
-    //check for null pointer:
-    if(self == nullptr)
-    {
+    // Validate arguments
+    if (args == nullptr) {
+        PyErr_SetString(PyExc_RuntimeError, "No arguments passed to get_scores");
         return nullptr;
     }
 
-    //get the scores:
-    auto scores = self->get_scores(); 
-
-    //make sure that the scores are valid:
-    if(scores.size() == 0)
-    {
-        PyErr_SetString(PyExc_RuntimeError,"Warning: no scores returned from the get_scores");
-    }
-    else if(scores.size() == 1)
-    {
-        PyErr_SetString(PyExc_RuntimeError,"Warning: only one score returned from the get_scores");
-    }
-    
-    if (args != nullptr)
-    {
-        //Py_DECREF(args);
-
-        //assign the scores passed as argument:
-        if(PyTuple_Check(args))
-        {
-            //get the number of arguments passed:   
-            Py_ssize_t size = PyTuple_Size(args);
-
-            if(size != scores.size())
-            {
-                PyErr_SetString(PyExc_RuntimeError,"Warning: the number of scores passed in the get_scores does not match the number of scores returned");
-            }
-
-            for(size_t i=0;i<scores.size();i++)
-            {
-                PyTuple_SetItem(args,i,Py_BuildValue("f",scores[i]));
-            }
-        }
-        else if(PyList_Check(args))
-        {
-            //get the number of arguments passed:   
-            Py_ssize_t size = PyList_Size(args);    
-
-            if(size != scores.size())
-            {
-                PyErr_SetString(PyExc_RuntimeError,"Warning: the number of scores passed in the get_scores does not match the number of scores returned");
-            }
-
-            for(size_t i=0;i<scores.size();i++)
-            {
-                PyList_SetItem(args,i,Py_BuildValue("f",scores[i]));
-            }
-        }
-        else
-        {
-            PyErr_SetString(PyExc_RuntimeError,"Warning: the argument passed in the get_scores is not a tuple or a list");
-        }
-
-
+    if (self == nullptr) {
+        PyErr_SetString(PyExc_RuntimeError, "Null pointer passed to get_scores");
+        Py_RETURN_NONE;
     }
 
-    //return npy array with the scores for each data point:
-    
-    return Py_BuildValue("n",scores.data(), static_cast<Py_ssize_t>(scores.size()));
+    // Retrieve scores
+    std::vector<real_t> scores;
+    try {
+        scores = self->get_scores();
+    } catch (const std::exception& e) {
+        PyErr_SetString(PyExc_RuntimeError, e.what());
+        
+        if (self->get_last_scores().empty()) {
+            PyErr_SetString(PyExc_RuntimeError, "No scores returned from get_scores");
+            Py_RETURN_NONE;
+        } else if (self->get_last_scores().size() == 1) {
+            PyErr_SetString(PyExc_RuntimeError, "Only one score returned from get_scores");
+            Py_RETURN_NONE;
+        }
 
-} 
+        if (args != nullptr) {
+            if (PyTuple_Check(args) || PyList_Check(args)) {
+                Py_ssize_t size = PyTuple_Check(args) ? PyTuple_Size(args) : PyList_Size(args);
+
+                if (size != self->get_last_scores().size()) {
+                    PyErr_SetString(PyExc_RuntimeError, "Mismatch in number of scores passed and returned");
+                }
+
+                for (size_t i = 0; i < self->get_last_scores().size(); ++i) {
+                    PyObject* score = Py_BuildValue("f", self->get_last_scores()[i]);
+                    if (PyTuple_Check(args)) {
+                        PyTuple_SetItem(args, i, score);
+                    } else {
+                        PyList_SetItem(args, i, score);
+                    }
+                }
+            } else {
+                PyErr_SetString(PyExc_RuntimeError, "Argument is not a tuple or a list");
+            }
+
+            return args;
+        }
+    }
+
+    // Ensure scores are valid
+    if (scores.empty()) {
+        PyErr_SetString(PyExc_RuntimeError, "No scores returned from get_scores");
+    } else if (scores.size() == 1) {
+        PyErr_SetString(PyExc_RuntimeError, "Only one score returned from get_scores");
+    }
+
+    if (args != nullptr) {
+        if (PyTuple_Check(args) || PyList_Check(args)) {
+            Py_ssize_t size = PyTuple_Check(args) ? PyTuple_Size(args) : PyList_Size(args);
+
+            if (size != scores.size()) {
+                PyErr_SetString(PyExc_RuntimeError, "Mismatch in number of scores passed and returned");
+            }
+
+            for (size_t i = 0; i < scores.size(); ++i) {
+                PyObject* score = Py_BuildValue("f", scores[i]);
+                if (PyTuple_Check(args)) {
+                    PyTuple_SetItem(args, i, score);
+                } else {
+                    PyList_SetItem(args, i, score);
+                }
+            }
+        } else {
+            PyErr_SetString(PyExc_RuntimeError, "Argument is not a tuple or a list");
+        }
+
+        return args;
+    }
+
+    // Return scores as a numpy array
+    return Py_BuildValue("n", scores.data(), static_cast<Py_ssize_t>(scores.size()));
+}
 
 
 //PyInit_fast_matrix_forest:
@@ -534,7 +552,7 @@ __attribute__ ((constructor)) void init() {
 }
 #endif
 
-
+//set max std::vector size 
 //
 //end of the Python interface for the FastMatrixForestF32U32 class
 

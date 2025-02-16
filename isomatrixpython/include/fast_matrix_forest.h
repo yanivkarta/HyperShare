@@ -1969,14 +1969,19 @@ class super_tree {
       std::vector<real_t> get_anomaly_score(const provallo::matrix<T>& data) 
       {
         //try to predict data :
+        std::vector<real_t> anomaly_score;
+
+        
         std::vector<U> y_pred = predict(data); 
+        anomaly_score.resize(y_pred.size(),real_t(0));
         //calculate the anomaly score 
-        std::vector<real_t> anomaly_score(data.rows(),real_t(0)); 
+        
         for(size_t i=0;i<data.rows();i++)
         {
             anomaly_score[i]=1.-std::abs(y_pred[i]-data(i,0)); 
             anomaly_score[i]/=data(i,data.rows()-1)+eta;
         }
+
         return anomaly_score;
 
       }
