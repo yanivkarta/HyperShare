@@ -2798,7 +2798,15 @@ namespace provallo
 
       return ret;
     }
-
+    void randomize()
+    {
+      std::random_device dev;
+      std::mt19937 gen(dev());
+      std::uniform_real_distribution<float> uniform_dist(-1.0, 1.0);
+      for (auto &x : *this)
+        x = (T)1.0 - uniform_dist(gen);
+    }
+    
     inline T *
     operator[](const int i) // subscripting
     {

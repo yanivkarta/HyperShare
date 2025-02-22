@@ -6,7 +6,7 @@
 
 #include "test1.h"
 #include "test2.h"
-
+#include "game_of_life_test.h"
 //for builtin AVX512
 #include <immintrin.h>
 

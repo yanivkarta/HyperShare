@@ -12,6 +12,10 @@
 //google test:
 #include <gtest/gtest.h>
 
+//std::filesystem:
+#include <filesystem>
+//for GIF89a animation:
+ 
 //test matrix
 //add unit tests for isolation matrix
 
@@ -772,6 +776,7 @@ TEST(bio_simulation, test4)
     
 }
 
+
 TEST(bio_simulation, MT_C01)
 {
     // test MT_C01 over generated sequences 
@@ -898,7 +903,6 @@ TEST(cpu_matrix_test, cpu_matrix1)
     EXPECT_EQ(m3(1,0),6.0);
     EXPECT_EQ(m3(1,1),16.0);
 
-
-
 }   
+ 
 #endif
