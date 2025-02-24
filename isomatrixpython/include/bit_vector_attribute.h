@@ -161,7 +161,8 @@ namespace provallo {
         bit_type & flip(size_t i, const bit_type &v, const T &b) { if (v[i]) flip(i, b); return *this; }
         bit_type & set(size_t i, const bit_type &v, const bit_type &b) { if (v[i]) set(i, b); else reset(i, b); return *this; }
         bit_type & reset(size_t i, const bit_type &v, const bit_type &b) { if (v[i]) reset(i, b); else set(i, b); return *this; }
-         
+        //bool operator[](size_t i) const { return (_bits >> i) & 1; } 
+
         friend bool operator==(const T &a, const bit_type &b) { return a == b._bits; }  
         friend bool operator!=(const T &a, const bit_type &b) { return a != b._bits; }
         friend bool operator<(const T &a, const bit_type &b) { return a < b._bits; }
@@ -187,7 +188,15 @@ namespace provallo {
         operator T&() const { return _bits; }
         operator const T&() { return _bits; }
         std::string to_string() const { return std::to_string(_bits); } 
-
+        T sum() const {  
+            T sum = 0;
+            for (size_t i = 0; i <  N; ++i) {
+                if ((*this)[i]) {
+                    sum |= (T)1 << i;
+                }
+            }
+            return sum;
+        }
         
      };
 
@@ -410,7 +419,7 @@ namespace provallo {
         return a >= b;
     }
     //---------------------------------------------------------------------------------//
-    
+
     
     
     

@@ -4177,6 +4177,41 @@ namespace provallo
   }
 
   // utilities with matrices :
+  //resid:
+  template <typename T>
+  matrix<T> resid(const matrix<T> &a, const matrix<T> &b)
+  {
+    size_t i = 0, j = 0;
+    matrix<T> res(a.rows(), a.cols());
+    T h,h2i; 
+    size_t n = a.rows();
+    h = T(1.)/n-1;
+    h2i = T(1.)/h*h; 
+    for (j = 1; j < n-1; j++)
+      for (i = 1; i < n-1; i++)
+        res(i, j) = -h2i*(-4*a(i, j) + a(i-1, j) + a(i+1, j) + a(i, j-1) + a(i, j+1) - b(i, j)); 
+
+    //boundaries:
+    for (i=0; i<n; i++)
+      res(i, 0) = res(i, n-1) = res(0, i) = res(n-1, i) = 0.0; 
+
+    return res;
+
+  }
+  //relax: 
+  template <typename T>
+  matrix<T> relax(const matrix<T> &a, const matrix<T> &b)
+  {
+    size_t i = 0, j = 0;
+    matrix<T> res(a.rows(), a.cols());
+    //rgbs relaxation:
+    for (j = 1; j < a.rows()-1; j++)
+      for (i = 1; i < a.cols()-1; i++)
+        res(i, j) = 0.25*(a(i-1, j) + a(i+1, j) + a(i, j-1) + a(i, j+1) - b(i, j)); 
+
+    return res;
+
+  }
 
   //jacobi utitlity for  matrix rot
   template <typename T>
@@ -4269,7 +4304,7 @@ namespace provallo
     const size_t PRE = 1, NPOST = 1;
     size_t npost, jpre, nc, nf;
     nf = u.rows();
-    nc = reinterpret_cast<size_t>(T((nf) + 1.0) / 2.);
+    nc = (nf+1)/2;
     if (j == 0)
       slvsml(u, rhs);
     else
@@ -4279,7 +4314,7 @@ namespace provallo
       for (jpre = 0; jpre < PRE; jpre++)
         relax(u, rhs);
       // residual computation
-      resid(temp, u, rhs);
+      temp = resid( u, rhs);
       // restriction
       rstrct(res, temp);
       // recursive call

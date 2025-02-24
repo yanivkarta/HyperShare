@@ -1066,7 +1066,8 @@ namespace provallo {
 									public Discriminator<MutatorSetter, 7>
 		{
 		};
-
+		
+		
 	}//namespace GENETIC
 
 	namespace global
