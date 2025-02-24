@@ -305,11 +305,19 @@ TEST(multigrid, Multigrid) {
 
     //print the result:
     for (int i = 0; i < 10; i++) {
+
         for (int j = 0; j < 10; j++) {
+            //if boundary condition, print '.'
+            if (i == 0 || i == 9 || j == 0 || j == 9) {
+                std::cout << "=" << "    ";
+            }
+            else {
             std::cout << m(i, j) << " ";
+            }
         }
         std::cout << std::endl;
     }
+
     
 }
  
