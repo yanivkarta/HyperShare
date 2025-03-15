@@ -318,7 +318,20 @@ namespace provallo
                 rms = decay_rate * rms + (1 - decay_rate) * gradients.pow(2);
                 //weights = weights - learning_rate * gradients / sqrt(rms + 1e-5)
                 weights = weights - learning_rate * gradients / (rms + 1e-5).sqrt();
+
+                //
             }
+            //rms prop operator return a new matrix instance of weights
+            matrix<T> operator()(matrix<T>& weights, 
+                                 matrix<T>& gradients,
+                                 matrix<T>& rms,
+                                 real_t learning_rate, 
+                                 real_t decay_rate)
+            {
+                rms_prop(weights, gradients, rms, learning_rate, decay_rate);
+                return weights;
+            }
+            
 
     };
     template<typename T>
@@ -346,6 +359,20 @@ namespace provallo
                 //weights = weights - learning_rate * m / (sqrt(v) + epsilon)
                 weights = weights - learning_rate * m / (v.sqrt() + epsilon);
             }
+            //adam operator return a new matrix instance of weights 
+            matrix<T> operator()(matrix<T>& weights, 
+                                 matrix<T>& gradients,
+                                 matrix<T>& m,
+                                 matrix<T>& v,
+                                 real_t learning_rate,
+                                 real_t beta1,
+                                 real_t beta2,
+                                 real_t epsilon)
+            {
+                adam(weights, gradients, m, v, learning_rate, beta1, beta2, epsilon);
+                return weights;
+            }   
+
     };
     template<typename T>
     class adagrad_helper
@@ -365,6 +392,16 @@ namespace provallo
                 cache = cache + gradients.pow(2);
                 //weights = weights - learning_rate * gradients / (sqrt(cache) + epsilon)
                 weights = weights - learning_rate * gradients / (cache.sqrt() + epsilon);
+            }
+            //adagrad operator return a new matrix instance of weights
+            matrix<T> operator()(matrix<T>& weights, 
+                                 matrix<T>& gradients,
+                                 matrix<T>& cache,
+                                 real_t learning_rate,
+                                 real_t epsilon)
+            {
+                adagrad(weights, gradients, cache, learning_rate, epsilon);
+                return weights;
             }
     };  
     template<typename T>
@@ -390,6 +427,20 @@ namespace provallo
                 //weights = weights - learning_rate * delta
                 weights = weights - learning_rate * delta;
             }
+
+            //adadelta operator return a new matrix instance of weights
+            matrix<T> operator()(matrix<T>& weights, 
+                                 matrix<T>& gradients,
+                                 matrix<T>& cache,
+                                 matrix<T>& delta,
+                                 double learning_rate,
+                                 double decay_rate,
+                                 double epsilon)
+            {
+
+                adadelta(weights, gradients, cache, delta, learning_rate, decay_rate, epsilon);
+                return weights;
+            }
     };  
     template<typename T>
 
@@ -411,6 +462,16 @@ namespace provallo
                 //weights = weights + velocity
                 weights = weights + velocity;
             }
+            //momentum operator return a new matrix instance of weights
+            matrix<T> operator()(matrix<T>& weights, 
+                                 matrix<T>& gradients,
+                                 matrix<T>& velocity,
+                                 double learning_rate,
+                                 double momentum)
+            {
+                momentum(weights, gradients, velocity, learning_rate, momentum);
+                return weights;
+            }   
     };  
     template<typename T>
     class nesterov_helper
@@ -431,6 +492,17 @@ namespace provallo
                 //weights = weights + momentum * velocity - learning_rate * gradients
                 weights = weights + momentum * velocity - learning_rate * gradients;
             }
+            //nesterov operator return a new matrix instance of weights
+            matrix<T> operator()(matrix<T>& weights, 
+                                 matrix<T>& gradients,
+                                 matrix<T>& velocity,
+                                 real_t learning_rate,
+                                 real_t momentum)
+            {
+                
+                nesterov(weights, gradients, velocity, learning_rate, momentum);
+                return weights;
+            }
     };
     template<typename T>
     class sgd_helper
@@ -447,6 +519,15 @@ namespace provallo
                 //weights = weights - learning_rate * gradients
                 weights = weights - learning_rate * gradients;
             }
+            //sgd operator return a new matrix instance of weights
+            matrix<T> operator()(matrix<T>& weights, 
+                                 matrix<T>& gradients,
+                                 real_t learning_rate)
+            {
+                sgd(weights, gradients, learning_rate);
+                return weights;
+            }
+
     };
         template<typename T>
 
@@ -468,6 +549,16 @@ namespace provallo
                 //weights = weights + velocity
                 weights = weights + velocity;
             }
+            //sgd_momentum operator return a new matrix instance of weights
+            matrix<T> operator()(matrix<T>& weights, 
+                                 matrix<T>& gradients,
+                                 matrix<T>& velocity,
+                                 real_t learning_rate,
+                                 real_t momentum)
+            {
+                sgd_momentum(weights, gradients, velocity, learning_rate, momentum);
+                return weights;
+            }   
     };
     
     template<typename T>
@@ -493,8 +584,264 @@ namespace provallo
                 //weights = weights + momentum * velocity - learning_rate * gradients
                 weights = weights + v - learning_rate * gradients;
             }
+            //sgd_nesterov operator return a new matrix instance of weights
+            matrix<T> operator()(matrix<T>& weights, 
+                                 matrix<T>& gradients,
+                                 matrix<T>& velocity,
+                                 real_t learning_rate,
+                                 real_t momentum)
+            {
+                sgd_nesterov(weights, gradients, velocity, learning_rate, momentum);
+                return weights;
+            }
+
+            
     };
-      
+    //adamax_helper:
+    template<typename T>
+    class  adamax_helper
+    {
+        //adamax operator return a new matrix instance of weights
+        matrix<T> operator()(matrix<T>& weights, 
+                             matrix<T>& gradients,
+                             matrix<T>& velocity,
+                             real_t learning_rate,
+                             real_t momentum)
+        {
+                //velocity = momentum * velocity - learning_rate * gradients
+                velocity = momentum * velocity - learning_rate * gradients;
+                //weights = weights + velocity
+                weights = weights + velocity;
+                return weights;
+        }
+        
+
+    };
+
+    //nadam helper
+    template <typename T> 
+    class nadam_helper : public adamax_helper<T>
+    {
+        //static void nadam(matrix<T>& weights,
+        //                  matrix<T>& gradients,
+        //                  matrix<T>& velocity,
+        //                  real_t learning_rate,
+        //                  real_t momentum)
+        //{
+        //    //velocity = momentum * velocity - learning_rate * gradients
+        //    velocity = momentum * velocity - learning_rate * gradients;
+        //    //weights = weights + velocity
+        //    weights = weights + velocity;
+        //}
+        //nadam operator return a new matrix instance of weights
+        matrix<T> operator()(matrix<T>& weights, 
+                             matrix<T>& gradients,
+                             matrix<T>& velocity,
+                             real_t learning_rate,
+                             real_t momentum)
+        {
+                //velocity = momentum * velocity - learning_rate * gradients
+                velocity = momentum * velocity - learning_rate * gradients;
+                //weights = weights + velocity
+                weights = weights + velocity;
+                return weights;
+        }   
+        
+
+    };
+
+
+    //amsgrad_helper:
+    template<typename T>
+    class amsgrad_helper
+    {
+        //amsgrad operator return a new matrix instance of weights
+        matrix<T> operator()(matrix<T>& weights, 
+                             matrix<T>& gradients,
+                             matrix<T>& velocity,
+                             real_t learning_rate,
+                             real_t momentum)
+        {
+                //velocity = momentum * velocity - learning_rate * gradients
+                velocity = momentum * velocity - learning_rate * gradients;
+                //weights = weights + velocity
+                weights = weights + velocity;
+                return weights;
+        }
+
+    };
+
+    
+    template <typename T>
+    class sampling_filter
+    {
+        real_t epsilon = 1e-6; 
+        real_t learning_rate = 1e-3;
+        real_t momentum = 0.9;
+        real_t beta = 0.5;
+
+        matrix<T> weights;
+        matrix<T> gradients;
+        matrix<T> cache;
+        matrix<T> delta;
+        matrix<T> velocity;
+        enum sampling_type
+        {
+            NO_SAMPLING,
+            NESTEROV,
+            SGD,
+            SGD_MOMENTUM,
+            SGD_NESTEROV
+        }; 
+        //default sampling
+        enum sampling_type type = NONE;
+        
+        enum filter_type : int8_t
+        {
+            NONE,
+            SAMPLING,
+            ADAGRAD,
+            ADAM,
+            ADAMAX,
+            AMSGRAD,
+            NADAM,  
+            SAMPLING_FILTER // use the vector of filters
+        };
+        enum filter_type filter_type = SAMPLING_FILTER; 
+
+        std::vector<enum filter_type> filters;
+
+        public:
+            
+            //constructors:
+            sampling_filter( sampling_type ty = NO_SAMPLING) : type(ty) {} 
+            ~sampling_filter() = default;
+            matrix<T> sample(matrix<T>& weights, 
+                             matrix<T>& gradients)
+            {
+                //update the gradients:
+                gradients = gradients + epsilon;
+                //update the cache:
+                cache = cache + gradients.pow(2);
+                //update the delta:
+                delta = beta * delta + (1 - beta) * gradients.pow(2);
+                //update the velocity:
+                velocity = momentum * velocity - learning_rate * gradients / (cache.sqrt() + epsilon);
+                //update the weights:
+                weights = weights + velocity;
+
+                //apply the sampling
+                switch (type)
+                {
+                    case SAMPLING:
+                        sampling_helper<T> helper;
+                        weights = helper(weights, gradients, epsilon, learning_rate, momentum);
+                        break;
+                    case SGD:
+                        sgd_helper<T> helper_sgd;
+                        weights = helper_sgd(weights, gradients, learning_rate);
+                        break;
+                    case SGD_MOMENTUM:
+                        sgd_momentum_helper<T> helper_sgd_momentum;
+                        weights = helper_sgd_momentum(weights, gradients, velocity, learning_rate, momentum);
+                        break;
+                    case SGD_NESTEROV:
+                        sgd_nesterov_helper<T> helper_sgd_nesterov;
+                        weights = helper_sgd_nesterov(weights, gradients, velocity, learning_rate, momentum);
+                        break;
+                    default:
+                        break;
+
+                }
+
+                return weights;
+
+            }
+            matrix<T> filter(matrix<T>& weights, 
+                             matrix<T>& gradients)
+            {
+                
+                
+                //update the gradients:
+                gradients = gradients + epsilon;
+                //update the cache:
+                cache = cache + gradients.pow(2);
+                //update the delta:
+                delta = beta * delta + (1 - beta) * gradients.pow(2);
+                //update the velocity:
+                velocity = momentum * velocity - learning_rate * gradients / (cache.sqrt() + epsilon);
+                //update the weights:
+                weights = weights + velocity;
+                if(filters.size() == 0)
+                {
+                    switch (filter_type)
+                    {
+                        case SAMPLING_FILTER:
+                            sampling_helper<T> helper;
+                            weights = helper(weights, gradients, epsilon, learning_rate, momentum);
+                            break;
+                        case ADAGRAD:
+                            adagrad_helper<T> helper_adagrad;
+                            weights = helper_adagrad(weights, gradients, cache, learning_rate, epsilon);
+                            break;
+                        case ADAM:
+                            adam_helper<T> helper_adam;
+                            weights = helper_adam(weights, gradients, cache, delta, learning_rate, epsilon);
+                            break;
+                        case ADAMAX:
+                            adamax_helper<T> helper_adamax;
+                            weights = helper_adamax(weights, gradients, cache, delta, learning_rate, epsilon);
+                            break;
+                        case AMSGRAD:
+                            amsgrad_helper<T> helper_amsgrad;
+                            weights = helper_amsgrad(weights, gradients, cache, delta, learning_rate, epsilon);
+                            break;
+                        case NADAM:
+                            nadam_helper<T> helper_nadam;
+                            weights = helper_nadam(weights, gradients, cache, delta, learning_rate, epsilon);
+                            break;
+
+                        default:
+                            //do nothing
+                            break;
+                    }
+                    //do nothing
+                }
+                //apply the filters
+                for (size_t i = 0; i < filters.size(); ++i)
+                {
+                    switch (filters[i])
+                    {
+                        case SAMPLING:
+                            sampling_helper<T> helper;
+                            weights = helper(weights, gradients, epsilon, learning_rate, momentum);
+                            break;
+                        case SGD:
+                            sgd_helper<T> helper_sgd;
+                            weights = helper_sgd(weights, gradients, learning_rate);
+                            break;
+                        case SGD_MOMENTUM:
+                            sgd_momentum_helper<T> helper_sgd_momentum;     
+                            weights = helper_sgd_momentum(weights, gradients, velocity, learning_rate, momentum);
+                            break;
+                        case SGD_NESTEROV:
+                            sgd_nesterov_helper<T> helper_sgd_nesterov;
+                            weights = helper_sgd_nesterov(weights, gradients, velocity, learning_rate, momentum);
+                            break;
+                        default:
+                            //do nothing
+                            break;
+
+                    }
+                }//end for
+                
+                
+                
+                
+                return weights;
+
+            }
+     };
 }//end namespace provallo
 
 

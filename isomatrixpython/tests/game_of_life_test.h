@@ -320,5 +320,160 @@ TEST(multigrid, Multigrid) {
 
     
 }
- 
+template <typename T>
+vector<T> quantum_convex(vector<T> demand, vector<T> wind, vector<T> solar) {
+
+    //quantum convex optimization, create quantum oracle
+    //quantum oracle:
+    matrix<matrix<complex<T>>> quantum_oracle(3, 3);
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            quantum_oracle(i, j).resize(demand.size(), demand.size()); 
+            for (int k = 0; k < demand.size() && k < wind.size() && k < solar.size() ; k++) {
+                for (int l = 0; l < demand.size() && l < wind.size() && l < solar.size() ; l++) {
+                    
+                    quantum_oracle(i, j)(k, l) = demand[k] + wind[k] + solar[k];
+
+
+                }
+            }
+        }
+    }
+    matrix<complex<T>>& prev = quantum_oracle(0, 0);
+    for (auto &x : quantum_oracle) {
+        
+        //use quasi-Newton method to update the quantum oracle 
+        for (size_t i=0; i < x.size1(); i++) {
+            for (size_t j=0; j < x.size2(); j++) {
+                x(i, j) = prev(i, j) * std::complex<T>(sqrt(2), 0) - x(i, j) * std::complex<T>(sqrt(2), 0); 
+                //apply the gradient descent method: 
+                x(i, j) += 0.1 * (prev(i, j) - x(i, j)); 
+
+            }
+        }
+
+
+    }
+    //calculate the convex from the quantum oracle, and return the convex function 
+
+    matrix<T> convex(demand.size(), demand.size());
+    for (int i = 0; i < demand.size(); i++) {
+        for (int j = 0; j < demand.size(); j++) {
+            convex(i, j) = 0;
+            for (int k = 0; k < 3; k++) {
+                for (int l = 0; l < 3; l++) {
+                    convex(i, j) += quantum_oracle(k, l)(i, j).real(); 
+                }
+            }
+        }
+    }
+    //return convex as a vector
+    vector<T> convex_vector;
+    for (int i = 0; i < convex.size1(); i++) {
+        for (int j = 0; j < convex.size2(); j++) {
+            convex_vector.push_back(convex(i, j));
+        }
+    }
+    return convex_vector;
+    
+}
+TEST(QuantumConvex, QuantumConvex) {
+
+    vector<double> demand = { .1, .2, .3, .4, .5, .6, .7, .8, .9, 1 }; 
+    vector<double> wind = { .1, .2, .3, .4, .5, .6, .7, .8, .9, 1 };
+    vector<double> solar = { .1, .2, .3, .4, .5, .6, .7, .8, .9, 1 };
+
+    //demand range [0, 1], wind range [0, 1], solar range [0, 1] 
+    //solar = wind + demand
+    //wind = solar - demand
+    //demand = solar - wind
+
+    for (int i = 0; i < demand.size()&& i < wind.size()&& i < solar.size(); i++) { 
+        solar[i] = wind[i] + demand[i];
+        wind[i] = solar[i] - demand[i];
+        demand[i] = solar[i] - wind[i];        
+    }
+    vector<double> convex = quantum_convex(demand, wind, solar);
+    //draw the convex function over a plane of demand and wind 
+    //use 3d plot to draw the convex function over a plane of demand and wind 
+    //open gnuplot file :
+    std::ofstream file;
+    file.open("convex.txt"); 
+    for (int i = 0; i < convex.size(); i++) {
+        file << convex[i] << std::endl;
+    }
+    file.close();
+    file.open("demand.txt"); 
+    for (int i = 0; i < demand.size(); i++) {
+        file << demand[i] << std::endl;
+    }
+    file.close();
+    file.open("wind.txt"); 
+    for (int i = 0; i < wind.size(); i++) {
+        file << wind[i] << std::endl;
+    }
+    file.close();
+    
+    file.open("quantum_convex.gnuplot"); 
+    file << "set terminal png" << std::endl;
+    file << "set output 'quantum_convex.png'" << std::endl;
+    file << "set xlabel 'demand'" << std::endl;
+    file << "set ylabel 'wind'" << std::endl;
+    file << "set zlabel 'solar'" << std::endl;
+    file << "set title 'quantum convex'" << std::endl;
+    file << "set pm3d" << std::endl;
+    file << "set palette rgbformulae 8, 10, 12" << std::endl;
+//  set range for imaginary part and real part 
+    file << "set xrange [-1:1]" << std::endl;
+    file << "set yrange [-1:1]" << std::endl;
+    file << "set zrange [-1:1]" << std::endl;
+    //allow imaginary part to be negative 
+    file << "set cbtics -1, 0.25, 1" << std::endl; 
+    //set range for real part
+    file << "set cbrange [-1:1]" << std::endl;
+    //set range for imaginary part
+    file << "set cbrange [-1:1]" << std::endl; 
+
+    //draw demand as surface
+
+    file << "unset surface" << std::endl;
+
+    //draw solar as surface 
+    file << "set view 60, 60" << std::endl;
+    file << "set hidden3d" << std::endl;
+    file << "unset surface" << std::endl;
+    //create a function to draw the convex function 
+    file<<"f(x,y) =  x*cos(y) + y*sin(x) - sqrt(x*x + y*y) "<<std::endl;
+
+    //isoplot f(x,y) with pm3d notitle
+
+    file << "splot f(x,y) with pm3d notitle" << std::endl;
+
+    file << "set view 0, 90" << std::endl;
+
+    file << "splot 'convex.txt' using f(1 - sqrt(1)*sin(1),sqrt(1)*cos(1) - sqrt(1)*sin(1) ) with pm3d notitle" << std::endl;
+
+    file << "unset surface" << std::endl;
+    file << "set view 60, 90" << std::endl;
+
+    file << "splot 'demand.txt' using f(1,cos(1)) with pm3d notitle" << std::endl; 
+
+    file << "unset surface" << std::endl;
+    file << "set view 90, 0" << std::endl;
+
+    file << "splot 'wind.txt' using f(1,-sin(1)) with pm3d notitle" << std::endl;
+    
+    //plot solar as vector arrows   
+    file << "unset surface" << std::endl;
+    file << "set view 0, 90" << std::endl;
+    file << "splot 'solar.txt' using f(1,-sin(1)) with vectors notitle" << std::endl;
+    file << "unset surface" << std::endl;
+    
+    
+
+    file.close();
+
+    
+
+}
 #endif
